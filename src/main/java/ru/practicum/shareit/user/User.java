@@ -5,9 +5,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotEmpty;
-
 /**
  * TODO Sprint add-controllers.
  */
@@ -17,10 +14,9 @@ import javax.validation.constraints.NotEmpty;
 @NoArgsConstructor
 public class User {
     int id;
-    @NotEmpty
+
     String name;
-    @Email
-    @NotEmpty
+
     String email;
 
     public User(String name, String email) {

@@ -2,6 +2,7 @@ package ru.practicum.shareit.item;
 
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import ru.practicum.shareit.request.ItemRequest;
 import ru.practicum.shareit.user.User;
@@ -12,11 +13,12 @@ import ru.practicum.shareit.user.User;
 
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@NoArgsConstructor
 public class Item {
     int id;
     String name;
     String description;
-    boolean available;
+    Boolean available;
     User owner;
     ItemRequest request;
 

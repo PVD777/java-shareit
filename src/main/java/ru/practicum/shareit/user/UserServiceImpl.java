@@ -43,8 +43,7 @@ public class UserServiceImpl implements UserService {
         User oldUser = UserMapper.dtoToUser(getUser(id));
         User patchedUser = UserMapper.dtoToUser(userDto);
         if (patchedUser.getEmail() != null
-                && patchedUser.getEmail().matches("^[\\w!#$%&amp;'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&amp;'*+/=?`{|}~^-]+)*" +
-                        "@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$")) {
+                && !patchedUser.getEmail().matches("^[a-zA-Z0-9_!#$%&'*+/=?``{|}~^.-]+@[a-zA-Z0-9.-]+$")) {
             throw new ValidationException("Неверный email");
         }
 

@@ -2,13 +2,14 @@ package ru.practicum.shareit.user;
 
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import ru.practicum.shareit.exception.ObjectAlreadyExistException;
 import ru.practicum.shareit.exception.ObjectNotFoundException;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.dto.UserDto;
 
+import javax.validation.ValidationException;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -16,8 +17,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-
-    @Qualifier(value = "InMemoryUserRepository")
     private final UserRepository userRepository;
 
     @Override
@@ -36,7 +35,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Collection<UserDto> getAllUsers() {
         return userRepository.getAllUsers().stream()
-                .map(user -> UserMapper.toUserDto(user))
+                .map(UserMapper::toUserDto)
                 .collect(Collectors.toList());
     }
 
@@ -44,6 +43,12 @@ public class UserServiceImpl implements UserService {
     public UserDto updateUser(int id, UserDto userDto) {
         User oldUser = UserMapper.dtoToUser(getUser(id));
         User patchedUser = UserMapper.dtoToUser(userDto);
+        if (patchedUser.getEmail() != null
+                && patchedUser.getEmail().matches("^[\\w!#$%&amp;'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&amp;'*+/=?`{|}~^-]+)*" +
+                        "@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$")) {
+            throw new ValidationException("Неверный email");
+        }
+
         if (userRepository.isExist(patchedUser.getName(), patchedUser.getEmail()) &&
                 (patchedUser.getName() != null && !patchedUser.getName().equals(oldUser.getName()) ||
                         patchedUser.getEmail() != null && !patchedUser.getEmail().equals(oldUser.getEmail())))

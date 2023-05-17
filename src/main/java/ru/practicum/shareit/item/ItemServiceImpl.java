@@ -36,13 +36,13 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public Collection<ItemDto> getAllItems() {
         return itemRepository.getAllItems().stream()
-                .map(item -> ItemMapper.toItemDto(item))
+                .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     public ItemDto updateItem(int userId, int itemId, ItemDto itemDto) {
-        Item oldItem = ItemMapper.dtoToItem(getItem(itemId));
+        Item oldItem = itemRepository.getItem(itemId).get();
         Item patchedItem = ItemMapper.dtoToItem(itemDto);
         if (oldItem.getOwner().getId() != userId) {
             throw new ForbiddenException("Доступ запрещен");
@@ -66,8 +66,9 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDto> getOwnersItem(int userId) {
-        return getAllItems().stream()
-                .filter(itemDto -> itemDto.getOwner().getId() == userId)
+        return itemRepository.getAllItems().stream()
+                .filter(item -> item.getOwner().getId() == userId)
+                .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
     }
 
@@ -75,7 +76,7 @@ public class ItemServiceImpl implements ItemService {
     public List<ItemDto> getAvailableItems(String text) {
         if (text.isBlank()) return new ArrayList<>();
         return getAllItems().stream()
-                .filter(itemDto -> itemDto.getAvailable() == true)
+                .filter(itemDto -> itemDto.getAvailable())
                 .filter(itemDto -> itemDto.getDescription().toLowerCase().contains(text.toLowerCase()))
                 .collect(Collectors.toList());
     }

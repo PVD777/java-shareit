@@ -50,11 +50,8 @@ public class InMemoryUserRepository implements UserRepository {
 
     @Override
     public boolean isExist(String name, String email) {
-        if ((name != null && nameSet.contains(name)) ||
-                (email != null && emailSet.contains(email))) {
-            return true;
-        }
-        return false;
+        return ((name != null && nameSet.contains(name)) ||
+                (email != null && emailSet.contains(email)));
     }
 
 

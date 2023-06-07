@@ -5,18 +5,21 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-/**
- * TODO Sprint add-controllers.
- */
+import javax.persistence.*;
 
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @NoArgsConstructor
+@Entity
+@Table(name = "users")
 public class User {
+    @Id
+    @Column(name = "user_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     int id;
-
+    @Column(unique =  true)
     String name;
-
+    @Column(unique =  true)
     String email;
 
     public User(String name, String email) {

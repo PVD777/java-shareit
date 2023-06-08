@@ -83,7 +83,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     public Collection<BookingDtoOut> getBookingsOfUser(int userId, String state) {
-        if (userRepository.existsById(userId)) {
+        if (!userRepository.existsById(userId)) {
             throw new ObjectNotFoundException("Пользователь не существует");
         }
         List<Booking> bookings = bookingRepository.getBookingsByUserId(userId);
@@ -92,7 +92,7 @@ public class BookingServiceImpl implements BookingService {
 
 
     public Collection<BookingDtoOut> getBookingsOfOwner(int userId, String state) {
-         if (userRepository.existsById(userId)) {
+         if (!userRepository.existsById(userId)) {
             throw new ObjectNotFoundException("Пользователь не существует");
         }
         List<Booking> bookings = bookingRepository.findBookingsByItemOwnerId(userId);

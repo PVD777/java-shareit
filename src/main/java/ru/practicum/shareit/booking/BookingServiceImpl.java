@@ -17,6 +17,7 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dao.UserRepository;
 
 import javax.validation.ValidationException;
+
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Comparator;
@@ -34,13 +35,11 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingDtoOut createBooking(int userId, BookingDtoIn bookingDtoIn) {
-        Item item = itemRepository.findById(bookingDtoIn.getItemId())
-                .orElseThrow(() -> new ObjectNotFoundException("Попытка забронирать несуществующую вещь"));
+        Item item = validateItem(bookingDtoIn.getItemId());
         if (!item.getAvailable()) {
             throw new ValidationException("Вещь недоступна");
         }
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ObjectNotFoundException("Попытка забронировать несуществующим пользователем"));
+        User user = validateUser(userId);
         if (user.getId() == item.getOwner().getId()) {
             throw new ObjectNotFoundException("Нельзя бронировать свои вещи");
         }
@@ -59,9 +58,7 @@ public class BookingServiceImpl implements BookingService {
 
 
     public BookingDtoOut giveApprove(int userId, int bookingId, boolean isApproved) {
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new ObjectNotFoundException("Указнное бронирование не существует"));
-
+        Booking booking = validateBooking(bookingId);
         if (booking.getItem().getOwner().getId() != userId) {
             throw new ObjectNotFoundException("Подтверждать может только владелец");
         }
@@ -78,8 +75,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingDtoOut getBooking(int bookingId, int userId) {
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new ObjectNotFoundException("Указнное бронирование не существует"));
+        Booking booking = validateBooking(bookingId);
         if (booking.getUser().getId() != userId && booking.getItem().getOwner().getId() != userId) {
             throw new ObjectNotFoundException("Доступ запрещен");
         }
@@ -87,14 +83,18 @@ public class BookingServiceImpl implements BookingService {
     }
 
     public Collection<BookingDtoOut> getBookingsOfUser(int userId, String state) {
-        userRepository.findById(userId).orElseThrow(() -> new ObjectNotFoundException("Пользователь не существует"));
+        if (userRepository.existsById(userId)) {
+            throw new ObjectNotFoundException("Пользователь не существует");
+        }
         List<Booking> bookings = bookingRepository.getBookingsByUserId(userId);
         return getBookingsOfCondition(bookings, state);
     }
 
 
     public Collection<BookingDtoOut> getBookingsOfOwner(int userId, String state) {
-        userRepository.findById(userId).orElseThrow(() -> new ObjectNotFoundException("Пользователь не существует"));
+         if (userRepository.existsById(userId)) {
+            throw new ObjectNotFoundException("Пользователь не существует");
+        }
         List<Booking> bookings = bookingRepository.findBookingsByItemOwnerId(userId);
         return getBookingsOfCondition(bookings, state);
     }
@@ -146,4 +146,19 @@ public class BookingServiceImpl implements BookingService {
                 .map(BookingMapper::bookingToDtoOut)
                 .collect(Collectors.toList());
         }
+
+    private Item validateItem(int itemId) {
+        return itemRepository.findById(itemId)
+                .orElseThrow(() -> new ObjectNotFoundException("Запрошенный item не существует"));
+    }
+
+    private User validateUser(int userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ObjectNotFoundException("Запрошенный User не найден"));
+    }
+
+    private Booking validateBooking(int bookingId) {
+        return bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ObjectNotFoundException("Запрошенный Booking не найден"));
+    }
 }

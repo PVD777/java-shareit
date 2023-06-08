@@ -17,7 +17,4 @@ public class BookingDtoOut {
     BookingStatus status = BookingStatus.WAITING;
     User booker;
     Item item;
-
-
-
 }

@@ -139,7 +139,7 @@ public class ItemServiceImpl implements ItemService {
 
     private Item validateItem(int itemId) {
         return itemRepository.findById(itemId)
-                .orElseThrow(() -> new ObjectNotFoundException("Запрошенный item не существует"));
+                .orElseThrow(() -> new ObjectNotFoundException("Запрошенный item не найден"));
     }
 
     private User validateUser(int userId) {

@@ -37,9 +37,9 @@ public class ErrorHandler {
         return new ErrorResponse(e.getFieldError().getDefaultMessage());
     }
 
-    @ExceptionHandler
+    @ExceptionHandler({ValidationException.class, UnknownStateException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleValidateErrors(ValidationException e) {
+    public ErrorResponse handleValidateErrors(RuntimeException e) {
         return new ErrorResponse(e.getMessage());
     }
 

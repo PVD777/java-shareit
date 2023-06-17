@@ -15,6 +15,7 @@ import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dao.UserRepository;
+import ru.practicum.shareit.utility.ExistValidator;
 
 import javax.validation.ValidationException;
 
@@ -28,18 +29,19 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
 
-    private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
+    private final ItemRepository itemRepository;
 
 
     @Override
     public BookingDtoOut createBooking(int userId, BookingDtoIn bookingDtoIn) {
-        Item item = validateItem(bookingDtoIn.getItemId());
+
+        Item item = ExistValidator.validateItem(itemRepository, bookingDtoIn.getItemId());
         if (!item.getAvailable()) {
             throw new ValidationException("Вещь недоступна");
         }
-        User user = validateUser(userId);
+        User user = ExistValidator.validateUser(userRepository, userId);
         if (user.getId() == item.getOwner().getId()) {
             throw new ObjectNotFoundException("Нельзя бронировать свои вещи");
         }
@@ -58,7 +60,7 @@ public class BookingServiceImpl implements BookingService {
 
 
     public BookingDtoOut giveApprove(int userId, int bookingId, boolean isApproved) {
-        Booking booking = validateBooking(bookingId);
+        Booking booking = ExistValidator.validateBooking(bookingRepository, bookingId);
         if (booking.getItem().getOwner().getId() != userId) {
             throw new ObjectNotFoundException("Подтверждать может только владелец");
         }
@@ -75,31 +77,31 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingDtoOut getBooking(int bookingId, int userId) {
-        Booking booking = validateBooking(bookingId);
+        Booking booking = ExistValidator.validateBooking(bookingRepository, bookingId);
         if (booking.getUser().getId() != userId && booking.getItem().getOwner().getId() != userId) {
             throw new ObjectNotFoundException("Доступ запрещен");
         }
         return BookingMapper.bookingToDtoOut(booking);
     }
 
-    public Collection<BookingDtoOut> getBookingsOfUser(int userId, String state) {
+    public Collection<BookingDtoOut> getBookingsOfUser(int userId, String state, int from, int size) {
         if (!userRepository.existsById(userId)) {
             throw new ObjectNotFoundException("Пользователь не существует");
         }
         List<Booking> bookings = bookingRepository.getBookingsByUserId(userId);
-        return getBookingsOfCondition(bookings, state);
+        return getBookingsOfCondition(bookings, state, from, size);
     }
 
 
-    public Collection<BookingDtoOut> getBookingsOfOwner(int userId, String state) {
+    public Collection<BookingDtoOut> getBookingsOfOwner(int userId, String state, int from, int size) {
          if (!userRepository.existsById(userId)) {
             throw new ObjectNotFoundException("Пользователь не существует");
         }
         List<Booking> bookings = bookingRepository.findBookingsByItemOwnerId(userId);
-        return getBookingsOfCondition(bookings, state);
+        return getBookingsOfCondition(bookings, state, from, size);
     }
 
-    private Collection<BookingDtoOut> getBookingsOfCondition(List<Booking> bookings, String state) {
+    private Collection<BookingDtoOut> getBookingsOfCondition(List<Booking> bookings, String state, int from, int size) {
         if (!BookingSearchStatus.contains(state)) {
             throw new UnknownStateException("Unknown state: UNSUPPORTED_STATUS");
         }
@@ -144,21 +146,8 @@ public class BookingServiceImpl implements BookingService {
         }
         return bookings.stream()
                 .map(BookingMapper::bookingToDtoOut)
+                .skip(from)
+                .limit(size)
                 .collect(Collectors.toList());
         }
-
-    private Item validateItem(int itemId) {
-        return itemRepository.findById(itemId)
-                .orElseThrow(() -> new ObjectNotFoundException("Запрошенный item не найден"));
-    }
-
-    private User validateUser(int userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new ObjectNotFoundException("Запрошенный User не найден"));
-    }
-
-    private Booking validateBooking(int bookingId) {
-        return bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new ObjectNotFoundException("Запрошенный Booking не найден"));
-    }
 }

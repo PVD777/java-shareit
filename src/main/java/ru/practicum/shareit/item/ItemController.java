@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.comment.model.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -8,6 +9,8 @@ import ru.practicum.shareit.utility.XHeaders;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @RestController
@@ -34,13 +37,17 @@ public class ItemController {
     }
 
     @GetMapping
-    public List<ItemDto> getOwnersItem(@RequestHeader(XHeaders.USER_ID_X_HEADER) int userId) {
-        return itemService.getOwnersItem(userId);
+    public List<ItemDto> getOwnersItem(@RequestHeader(XHeaders.USER_ID_X_HEADER) int userId,
+                                       @RequestParam(defaultValue = "0") @PositiveOrZero int from,
+                                       @RequestParam(defaultValue = "999") @Positive int size) {
+        return itemService.getOwnersItem(userId, from, size);
     }
 
     @GetMapping("/search")
-    public List<ItemDto> getAvailableItems(@RequestParam String text) {
-        return itemService.getAvailableItems(text);
+    public List<ItemDto> getAvailableItems(@RequestParam String text,
+                                           @RequestParam(defaultValue = "0") @PositiveOrZero int from,
+                                           @RequestParam(defaultValue = "999") @Positive int size) {
+        return itemService.getAvailableItems(text, from, size);
     }
 
     @PostMapping("{itemId}/comment")

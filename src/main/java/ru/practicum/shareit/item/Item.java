@@ -25,7 +25,8 @@ public class Item {
     @ManyToOne
     @JoinColumn(name = "user_id")
     User owner;
-    @Transient
+    @ManyToOne
+    @JoinColumn(name = "request_id")
     ItemRequest request;
 
     public Item(int id, String name, String description, Boolean available) {

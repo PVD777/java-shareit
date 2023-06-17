@@ -18,9 +18,9 @@ public interface ItemService {
 
     void deleteItem(int id);
 
-    List<ItemDto> getOwnersItem(int userId);
+    List<ItemDto> getOwnersItem(int userId, int from, int size);
 
-    List<ItemDto> getAvailableItems(String text);
+    List<ItemDto> getAvailableItems(String text, int from, int size);
 
     CommentDto addComment(int userId, int itemId, CommentDto commentDto);
 

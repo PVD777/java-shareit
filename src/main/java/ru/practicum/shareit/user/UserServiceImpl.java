@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.ObjectNotFoundException;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.utility.ExistValidator;
 
 import javax.validation.ValidationException;
 import java.util.Collection;
@@ -26,8 +27,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto getUser(int userId) {
-        return UserMapper.toUserDto(userRepository.findById(userId)
-                .orElseThrow(() -> new ObjectNotFoundException("Запрошенный пользователь не найден")));
+        return UserMapper.toUserDto(ExistValidator.validateUser(userRepository, userId));
     }
 
     @Override

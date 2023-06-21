@@ -1,7 +1,6 @@
 package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.BookingMapper;
 import ru.practicum.shareit.booking.dao.BookingRepository;
@@ -20,6 +19,7 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.utility.ExistValidator;
 
+import org.springframework.data.domain.Pageable;
 import javax.validation.ValidationException;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -87,12 +87,11 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public void deleteItem(int id) {
         itemRepository.deleteById(id);
-
     }
 
     @Override
-    public List<ItemDto> getOwnersItem(int userId, int from, int size) {
-        return itemRepository.findItemsByOwnerIdOrderById(userId, PageRequest.of(from, size))
+    public List<ItemDto> getOwnersItem(int userId, Pageable pageable) {
+        return itemRepository.findItemsByOwnerIdOrderById(userId, pageable)
                 .stream()
                 .map(ItemMapper::toItemDto)
                 .map(this::setBookingsToItem)
@@ -100,10 +99,10 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDto> getAvailableItems(String text, int from, int size) {
+    public List<ItemDto> getAvailableItems(String text, Pageable pageable) {
         if (text.isBlank()) return new ArrayList<>();
         return itemRepository.findItemsByAvailableIsTrueAndDescriptionContainsIgnoreCase(text,
-                        PageRequest.of(from, size)).stream()
+                        pageable).stream()
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
     }

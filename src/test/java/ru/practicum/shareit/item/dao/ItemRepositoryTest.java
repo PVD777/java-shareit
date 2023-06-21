@@ -28,8 +28,6 @@ class ItemRepositoryTest {
     @Autowired
     RequestRepository requestRepository;
 
-
-
     @BeforeEach
     void beforeEach() {
         User user1 = new User("user1", "user1@mail.com");
@@ -88,6 +86,7 @@ class ItemRepositoryTest {
         itemRepository.deleteAll();
         requestRepository.deleteAll();
     }
+
     @Test
     @DisplayName("Проверка поиска вещей по владельцу")
     void findItemsByOwnerIdOrderById() {

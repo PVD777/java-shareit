@@ -31,13 +31,13 @@ import static org.junit.jupiter.api.Assertions.*;
 class ItemServiceImplTest {
 
     @Mock
-    ItemRepository itemRepository;
+    private ItemRepository itemRepository;
     @Mock
-    BookingRepository bookingRepository;
+    private BookingRepository bookingRepository;
     @Mock
-    CommentRepository commentRepository;
+    private CommentRepository commentRepository;
     @Mock
-    UserRepository userRepository;
+    private UserRepository userRepository;
     @InjectMocks
     private ItemServiceImpl itemService;
 

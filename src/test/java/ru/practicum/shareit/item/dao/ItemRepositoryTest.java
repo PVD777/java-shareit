@@ -14,6 +14,7 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dao.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -22,117 +23,123 @@ import static org.junit.jupiter.api.Assertions.*;
 class ItemRepositoryTest {
 
     @Autowired
-    ItemRepository itemRepository;
+    private ItemRepository itemRepository;
     @Autowired
-    UserRepository userRepository;
+    private  UserRepository userRepository;
     @Autowired
-    RequestRepository requestRepository;
+    private RequestRepository requestRepository;
+
+    private final List<Item> items = new ArrayList<>();
+    private final List<ItemRequest> requests = new ArrayList<>();
+    private final List<User> users = new ArrayList<>();
 
     @BeforeEach
     void beforeEach() {
         User user1 = new User("user1", "user1@mail.com");
-        user1.setId(1);
         User user2 = new User("user2", "user2@mail.com");
-        user2.setId(2);
         User user3 = new User("user3", "user3@mail.com");
-        user3.setId(3);
-        userRepository.save(user1);
-        userRepository.save(user2);
-        userRepository.save(user3);
+        users.add(userRepository.save(user1));
+        users.add(userRepository.save(user2));
+        users.add(userRepository.save(user3));
 
-        Item item1 = new Item(1, "itemName1", "itemDesc1", true);
+        Item item1 = new Item("itemName1", "itemDesc1", true);
         item1.setOwner(user1);
-        Item item2 = new Item(2, "itemName2", "itemDesc2", false);
+        Item item2 = new Item("itemName2", "itemDesc2", false);
         item2.setOwner(user2);
-        Item item3 = new Item(3, "itemName3", "itemDesc3", true);
+        Item item3 = new Item("itemName3", "itemDesc3", true);
         item3.setOwner(user3);
-        Item item4 = new Item(4, "itemName4", "itemDesc4", false);
+        Item item4 = new Item("itemName4", "itemDesc4", false);
         item4.setOwner(user2);
-        Item item5 = new Item(5, "itemName5", "itemDesc5", true);
+        Item item5 = new Item("itemName5", "itemDesc5", true);
         item5.setOwner(user1);
-        Item item6 = new Item(6, "itemName6", "itemDesc6", false);
+        Item item6 = new Item("itemName6", "itemDesc6", false);
         item6.setOwner(user2);
-        itemRepository.save(item1);
-        itemRepository.save(item2);
-        itemRepository.save(item3);
-        itemRepository.save(item4);
-        itemRepository.save(item5);
-        itemRepository.save(item6);
+        items.add(itemRepository.save(item1));
+        items.add(itemRepository.save(item2));
+        items.add(itemRepository.save(item3));
+        items.add(itemRepository.save(item4));
+        items.add(itemRepository.save(item5));
+        items.add(itemRepository.save(item6));
 
-        ItemRequest itemRequest1 = new ItemRequest(1, "reqDesc1", user1, LocalDateTime.now().minusDays(1));
-        ItemRequest itemRequest2 = new ItemRequest(2, "reqDesc2", user2, LocalDateTime.now().minusHours(12));
-        ItemRequest itemRequest3 = new ItemRequest(3, "reqDesc3", user3, LocalDateTime.now().minusMinutes(30));
-        requestRepository.save(itemRequest1);
-        requestRepository.save(itemRequest2);
-        requestRepository.save(itemRequest3);
+        ItemRequest itemRequest1 = new ItemRequest("reqDesc1", user1, LocalDateTime.now().minusDays(1));
+        ItemRequest itemRequest2 = new ItemRequest("reqDesc2", user2, LocalDateTime.now().minusHours(12));
+        ItemRequest itemRequest3 = new ItemRequest("reqDesc3", user3, LocalDateTime.now().minusMinutes(30));
+        requests.add(requestRepository.save(itemRequest1));
+        requests.add(requestRepository.save(itemRequest2));
+        requests.add(requestRepository.save(itemRequest3));
 
-        Item item7 = new Item(7, "itemName7", "itemDesc7", true);
+        Item item7 = new Item("itemName7", "itemDesc7", true);
         item7.setOwner(user1);
         item7.setRequest(itemRequest1);
-        Item item8 = new Item(8, "itemName8", "itemDesc8", true);
+        Item item8 = new Item("itemName8", "itemDesc8", true);
         item8.setOwner(user1);
         item8.setRequest(itemRequest1);
-        Item item9 = new Item(9, "itemName9", "itemDesc9", true);
+        Item item9 = new Item("itemName9", "itemDesc9", true);
         item9.setOwner(user1);
         item9.setRequest(itemRequest2);
-        itemRepository.save(item7);
-        itemRepository.save(item8);
-        itemRepository.save(item9);
+        items.add(itemRepository.save(item7));
+        items.add(itemRepository.save(item8));
+        items.add(itemRepository.save(item9));
     }
 
-    @AfterEach
+   @AfterEach
     void afterEach() {
-        userRepository.deleteAll();
-        itemRepository.deleteAll();
-        requestRepository.deleteAll();
+        requests.clear();
+       requestRepository.deleteAll();
+       users.clear();
+       userRepository.deleteAll();
+       items.clear();
+       itemRepository.deleteAll();
     }
 
     @Test
     @DisplayName("Проверка поиска вещей по владельцу")
     void findItemsByOwnerIdOrderById() {
-        List<Item> items1 = itemRepository.findItemsByOwnerIdOrderById(1, Pageable.ofSize(20));
+        List<Item> items1 = itemRepository.findItemsByOwnerIdOrderById(items.get(0).getOwner().getId(),
+                Pageable.ofSize(20));
         assertEquals(items1.size(),5);
-        assertEquals(items1.get(0).getOwner().getId(), 1);
-        assertEquals(items1.get(1).getId(), 5);
+        assertTrue(items1.stream().allMatch(item -> item.getOwner().getId() == items.get(0).getOwner().getId()));
 
-        List<Item> items2 = itemRepository.findItemsByOwnerIdOrderById(2, Pageable.ofSize(20));
+        List<Item> items2 = itemRepository.findItemsByOwnerIdOrderById(items.get(1).getOwner().getId(),
+                Pageable.ofSize(20));
+
         assertEquals(items2.size(),3);
-        assertEquals(items2.get(1).getOwner().getId(), 2);
-        assertEquals(items2.get(2).getId(), 6);
+        assertTrue(items2.stream().allMatch(item -> item.getOwner().getId() == items.get(1).getOwner().getId()));
 
-        items2 = itemRepository.findItemsByOwnerIdOrderById(2, Pageable.ofSize(1));
+        items2 = itemRepository.findItemsByOwnerIdOrderById(items.get(1).getOwner().getId(),
+                Pageable.ofSize(1));
         assertEquals(items2.size(),1);
-        assertEquals(items2.get(0).getOwner().getId(), 2);
-        assertEquals(items2.get(0).getId(), 2);
+        assertTrue(items2.stream().allMatch(item -> item.getOwner().getId() == items.get(1).getOwner().getId()));
 
-        List<Item> items3 = itemRepository.findItemsByOwnerIdOrderById(3, Pageable.ofSize(20));
+        List<Item> items3 = itemRepository.findItemsByOwnerIdOrderById(items.get(2).getOwner().getId(),
+                Pageable.ofSize(20));
         assertEquals(items3.size(),1);
-        assertEquals(items3.get(0).getOwner().getId(), 3);
-        assertEquals(items3.get(0).getId(), 3);
+        assertTrue(items3.stream().allMatch(item -> item.getOwner().getId() == items.get(2).getOwner().getId()));
     }
 
     @Test
     @DisplayName("Проверка поиска доступных вещей по описанию")
     void findItemsByAvailableIsTrueAndDescriptionContainsIgnoreCase() {
-        List<Item> items = itemRepository.findItemsByAvailableIsTrueAndDescriptionContainsIgnoreCase("dESC",
+        List<Item> searchedItems = itemRepository.findItemsByAvailableIsTrueAndDescriptionContainsIgnoreCase("dESC",
                 Pageable.ofSize(2));
-        assertEquals(items.size(),2);
-        assertTrue(items.get(0).getDescription().contains("Desc") &&
-                items.get(1).getDescription().contains("Desc"));
-        assertTrue(items.get(0).getAvailable() & items.get(1).getAvailable());
+        assertEquals(searchedItems.size(),2);
+        assertTrue(searchedItems.get(0).getDescription().contains("Desc") &&
+                searchedItems.get(1).getDescription().contains("Desc"));
+        assertTrue(searchedItems.get(0).getAvailable() & searchedItems.get(1).getAvailable());
 
-        items = itemRepository.findItemsByAvailableIsTrueAndDescriptionContainsIgnoreCase("DeSc",
+        searchedItems = itemRepository.findItemsByAvailableIsTrueAndDescriptionContainsIgnoreCase("DeSc",
                 Pageable.ofSize(22));
-        assertEquals(items.size(),6);
-        assertTrue(items.stream().allMatch(Item::getAvailable));
-        assertTrue(items.stream().allMatch(item -> item.getDescription().contains("Desc")));
+        assertEquals(searchedItems.size(),6);
+        assertTrue(searchedItems.stream().allMatch(Item::getAvailable));
+        assertTrue(searchedItems.stream().allMatch(item -> item.getDescription().contains("Desc")));
 
     }
 
     @Test
+    @DisplayName("Проверка поиска вещей по номеру request")
     void getItemByRequestId() {
-        List<Item> items = itemRepository.getItemByRequestId(1);
+        List<Item> items = itemRepository.getItemByRequestId(requests.get(0).getId());
         assertEquals(items.size(), 2);
-        assertTrue(items.stream().allMatch(item -> item.getRequest().getId() == 1));
+        assertTrue(items.stream().allMatch(item -> item.getRequest().getId() == requests.get(0).getId()));
     }
 }

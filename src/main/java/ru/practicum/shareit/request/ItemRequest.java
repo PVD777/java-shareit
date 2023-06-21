@@ -28,4 +28,9 @@ public class ItemRequest {
     User user;
     LocalDateTime createdDateTime;
 
+    public ItemRequest(String description, User user, LocalDateTime createdDateTime) {
+        this.description = description;
+        this.user = user;
+        this.createdDateTime = createdDateTime;
+    }
 }

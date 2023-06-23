@@ -7,7 +7,7 @@ import ru.practicum.shareit.user.User;
 
 import javax.persistence.*;
 
-
+@Generated
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

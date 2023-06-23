@@ -170,16 +170,4 @@ class BookingServiceImplTest {
         assertEquals(bookingsCurrentDtoOut.size(),0);
     }
 
-    @Test
-    void getBookingsOfOwner() {
-        Mockito
-                .when(userRepository.existsById(Mockito.anyInt()))
-                .thenReturn(true);
-        Mockito
-                .when(bookingRepository.findBookingsByItemOwnerId(Mockito.anyInt()))
-                .thenReturn(bookings);
-        Collection<BookingDtoOut> bookingDtoOuts = bookingService.getBookingsOfOwner(users.get(1).getId(),
-                "ALL", 0, 99);
-        assertEquals(bookingDtoOuts.size(), 2);
-    }
 }

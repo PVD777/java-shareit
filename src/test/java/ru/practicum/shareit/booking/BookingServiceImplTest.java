@@ -13,7 +13,6 @@ import ru.practicum.shareit.booking.dto.BookingDtoOut;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.item.Item;
-
 import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dao.UserRepository;
@@ -21,7 +20,8 @@ import ru.practicum.shareit.user.dao.UserRepository;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -178,7 +178,8 @@ class BookingServiceImplTest {
         Mockito
                 .when(bookingRepository.findBookingsByItemOwnerId(Mockito.anyInt()))
                 .thenReturn(bookings);
-
-
+        Collection<BookingDtoOut> bookingDtoOuts = bookingService.getBookingsOfOwner(users.get(1).getId(),
+                "ALL", 0, 99);
+        assertEquals(bookingDtoOuts.size(), 2);
     }
 }

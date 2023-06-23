@@ -32,4 +32,9 @@ public class BookingMapper {
         bookingDtoOutShort.setItemId(booking.getItem().getId());
         return bookingDtoOutShort;
     }
+
+    public static BookingDtoIn bookingToDtoIn(Booking booking) {
+        return new BookingDtoIn(booking.getItem().getId(), booking.getBookingStart(), booking.getBookingFinish());
+    }
+
 }

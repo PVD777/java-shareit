@@ -11,7 +11,7 @@ import ru.practicum.shareit.request.dao.RequestRepository;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dao.UserRepository;
 
-
+@Generated
 @UtilityClass
 public class ExistValidator {
 

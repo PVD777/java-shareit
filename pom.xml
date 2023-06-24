@@ -210,8 +210,9 @@
 									</rule>
 								</rules>
 								<excludes>
-									<exclude>ru/practicum/shareit/**/*DTO.*</exclude>
+									<exclude>ru/practicum/shareit/**/*Dto.*</exclude>
 									<exclude>ru/practicum/shareit/utility/*.*</exclude>
+									<exclude>ru/practicum/shareit/exception/*.*</exclude>
 								</excludes>
 							</configuration>
 						</execution>

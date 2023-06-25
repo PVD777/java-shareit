@@ -10,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.dto.UserDto;
 
+import javax.validation.ValidationException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -49,8 +50,44 @@ class UserServiceImplTest {
         UserDto userDto = UserMapper.toUserDto(users.get(0));
         UserDto savedUser = userService.createUser(userDto);
         assertNotNull(savedUser);
-        assertEquals(users.get(0).getId(),savedUser.getId());
-        assertEquals(users.get(0).getName(),savedUser.getName());
+        assertEquals(users.get(0).getId(), savedUser.getId());
+        assertEquals(users.get(0).getName(), savedUser.getName());
+    }
+
+    @Test
+    void updateUser() {
+        User user = new User();
+        user.setId(1);
+        user.setName("UpdateName");
+        user.setEmail("update@update.com");
+        UserDto userDto = UserMapper.toUserDto(user);
+        Mockito
+                .when(userRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(users.get(0)));
+
+        Mockito
+                .when(userRepository.save(Mockito.any(User.class)))
+                .thenReturn(user);
+
+        UserDto updatedUser = userService.updateUser(users.get(0).getId(), userDto);
+        assertEquals(users.get(0).getId(), updatedUser.getId());
+        assertEquals(userDto.getName(), updatedUser.getName());
+    }
+
+    @Test
+    void updateUserFailEmail() {
+        User user = new User();
+        user.setId(1);
+        user.setName("UpdateName");
+        user.setEmail("updateupdate.com");
+        UserDto userDto = UserMapper.toUserDto(user);
+        Mockito
+                .when(userRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(users.get(0)));
+
+        ValidationException exception = assertThrows(ValidationException.class,
+                () -> userService.updateUser(users.get(0).getId(), userDto));
+        assertEquals("Неверный email", exception.getMessage());
     }
 
     @Test

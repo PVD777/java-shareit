@@ -12,18 +12,20 @@ import org.springframework.data.domain.Pageable;
 import ru.practicum.shareit.booking.dao.BookingRepository;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
+import ru.practicum.shareit.comment.CommentMapper;
 import ru.practicum.shareit.comment.dao.CommentRepository;
 import ru.practicum.shareit.comment.model.Comment;
+import ru.practicum.shareit.comment.model.dto.CommentDto;
 import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.request.ItemRequest;
+import ru.practicum.shareit.request.dao.RequestRepository;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dao.UserRepository;
 
+import javax.validation.ValidationException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -38,6 +40,8 @@ class ItemServiceImplTest {
     private CommentRepository commentRepository;
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private RequestRepository requestRepository;
     @InjectMocks
     private ItemServiceImpl itemService;
 
@@ -46,6 +50,7 @@ class ItemServiceImplTest {
     List<Item> items = new ArrayList<>();
     List<Comment> comments = new ArrayList<>();
     List<Booking> bookings = new ArrayList<>();
+    List<ItemRequest> requests = new ArrayList<>();
 
     @BeforeEach
     void beforeEach() {
@@ -99,9 +104,9 @@ class ItemServiceImplTest {
         booking1.setId(1);
         booking1.setItem(item1);
         booking1.setUser(user2);
-        booking1.setStatus(BookingStatus.WAITING);
-        booking1.setBookingStart(LocalDateTime.now().plusDays(1));
-        booking1.setBookingFinish(LocalDateTime.now().plusDays(2));
+        booking1.setStatus(BookingStatus.APPROVED);
+        booking1.setBookingStart(LocalDateTime.now().minusDays(2));
+        booking1.setBookingFinish(LocalDateTime.now().minusDays(1));
         bookings.add(booking1);
         Booking booking2 = new Booking();
         booking2.setId(2);
@@ -111,27 +116,38 @@ class ItemServiceImplTest {
         booking2.setBookingStart(LocalDateTime.now().plusDays(3));
         booking2.setBookingFinish(LocalDateTime.now().plusDays(4));
         bookings.add(booking2);
+
+        requests.clear();
+        ItemRequest itemRequest1 = new ItemRequest(1, "desc1", user1, LocalDateTime.now());
+        ItemRequest itemRequest2 = new ItemRequest(2, "desc2", user1, LocalDateTime.now());
+        requests.add(itemRequest1);
+        requests.add(itemRequest2);
     }
 
     @Test
     void createItem() {
-            Mockito
-                    .when(userRepository.findById(Mockito.anyInt()))
-                    .thenReturn(Optional.of(users.get(0)));
-            Mockito
-                    .when(itemRepository.save(Mockito.any(Item.class)))
-                    .thenReturn(items.get(0));
+        Mockito
+                .when(userRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(users.get(0)));
 
-            ItemDto itemDto = ItemMapper.toItemDto(items.get(0));
-            int ownerId = users.get(0).getId();
-            ItemDto savedItemDto = itemService.createItem(ownerId, itemDto);
+        Mockito
+                .when(itemRepository.save(Mockito.any(Item.class)))
+                .thenReturn(items.get(0));
+
+        Mockito
+                .when(requestRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(requests.get(0)));
+        items.get(0).setRequest(requests.get(0));
+        ItemDto itemDto = ItemMapper.toItemDto(items.get(0));
+        int ownerId = users.get(0).getId();
+        ItemDto savedItemDto = itemService.createItem(ownerId, itemDto);
 
 
-            assertNotNull(savedItemDto);
-            assertEquals(itemDto.getId(), savedItemDto.getId());
-            assertEquals(itemDto.getName(), savedItemDto.getName());
-            assertEquals(itemDto.getDescription(), savedItemDto.getDescription());
-        }
+        assertNotNull(savedItemDto);
+        assertEquals(itemDto.getId(), savedItemDto.getId());
+        assertEquals(itemDto.getName(), savedItemDto.getName());
+        assertEquals(itemDto.getDescription(), savedItemDto.getDescription());
+    }
 
     @Test
     void getItem() {
@@ -151,7 +167,7 @@ class ItemServiceImplTest {
         ItemDto expectedIteDto = ItemMapper.toItemDto(items.get(0));
         assertNotNull(itemDto);
         assertEquals(expectedIteDto.getId(), itemDto.getId());
-        assertEquals(bookings.get(0).getId(), itemDto.getNextBooking().getId());
+        assertEquals(bookings.get(1).getId(), itemDto.getNextBooking().getId());
         assertEquals(comments.size(), itemDto.getComments().size());
     }
 
@@ -170,7 +186,6 @@ class ItemServiceImplTest {
         Mockito
                 .when(itemRepository.findById(Mockito.anyInt()))
                 .thenReturn(Optional.of(items.get(0)));
-
 
         User currentUser = users.get(0);
         Item updatedItem = new Item(1, "UpdatedItem1", "UpdatedDesc1", true);
@@ -207,8 +222,47 @@ class ItemServiceImplTest {
                 .when(itemRepository.findItemsByAvailableIsTrueAndDescriptionContainsIgnoreCase(Mockito.anyString(),
                         Mockito.any(Pageable.class)))
                 .thenReturn(items);
-        List<ItemDto> searchedItems = itemService.getAvailableItems("test", PageRequest.of(0,1));
-        assertEquals(searchedItems.size(),2);
+        List<ItemDto> searchedItems = itemService.getAvailableItems("test", PageRequest.of(0, 1));
+        assertEquals(searchedItems.size(), 2);
         assertTrue(searchedItems.stream().allMatch(ItemDto::getAvailable));
+    }
+
+    @Test
+    void addComment() {
+        Mockito
+                .when(itemRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(items.get(0)));
+        Mockito
+                .when(userRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(users.get(1)));
+        Mockito
+                .when(bookingRepository.findBookingsByItemIdOrderByBookingStart(Mockito.anyInt()))
+                .thenReturn(bookings);
+        Mockito
+                .when(commentRepository.save(Mockito.any(Comment.class)))
+                .thenReturn(comments.get(0));
+
+        CommentDto commentDto = CommentMapper.toCommentDto(comments.get(0));
+        CommentDto savedComment = itemService.addComment(users.get(1).getId(), items.get(0).getId(), commentDto);
+        assertEquals(savedComment.getId(), comments.get(0).getId());
+        assertEquals(savedComment.getText(), comments.get(0).getText());
+    }
+
+    @Test
+    void addCommentFail() {
+        Mockito
+                .when(itemRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(items.get(0)));
+        Mockito
+                .when(userRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(users.get(1)));
+        Mockito
+                .when(bookingRepository.findBookingsByItemIdOrderByBookingStart(Mockito.anyInt()))
+                .thenReturn(Collections.emptyList());
+
+        ValidationException exception = assertThrows(ValidationException.class,
+                () -> itemService.addComment(users.get(1).getId(), items.get(0).getId(), new CommentDto()));
+        assertEquals("Доступ запрещен", exception.getMessage());
+
     }
 }

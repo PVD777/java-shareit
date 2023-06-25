@@ -7,6 +7,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.request.dao.RequestRepository;
@@ -130,5 +133,16 @@ class ItemRequestServiceImplTest {
         int ownerId = users.get(0).getId();
         Collection<ItemRequestDto> requestDtos = itemRequestService.getOwnerRequests(ownerId);
         assertEquals(requestDtos.size(), 2);
+    }
+
+    @Test
+    void getAll() {
+        Page<ItemRequest> pagedRequest = new PageImpl<ItemRequest>(requests);
+        Mockito
+                .when(requestRepository.findAll(Mockito.any(Pageable.class)))
+                .thenReturn(pagedRequest);
+
+        Collection<ItemRequestDto> allRequests = itemRequestService.getAll(2, 0, 99);
+        assertEquals(allRequests.size(), 2);
     }
 }

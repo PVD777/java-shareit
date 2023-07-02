@@ -3,12 +3,10 @@ package ru.practicum.shareit.user;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
+import ru.practicum.shareit.exception.ObjectNotFoundException;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.utility.ExistValidator;
 
-import javax.validation.ValidationException;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -26,7 +24,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto getUser(int userId) {
-        return UserMapper.toUserDto(ExistValidator.validateUser(userRepository, userId));
+        return UserMapper.toUserDto(validateUser(userId));
     }
 
     @Override
@@ -40,10 +38,6 @@ public class UserServiceImpl implements UserService {
     public UserDto updateUser(int id, UserDto userDto) {
         User oldUser = UserMapper.dtoToUser(getUser(id));
         User patchedUser = UserMapper.dtoToUser(userDto);
-        if (patchedUser.getEmail() != null
-                && !patchedUser.getEmail().matches("^[a-zA-Z0-9_!#$%&'*+/=?``{|}~^.-]+@[a-zA-Z0-9.-]+$")) {
-            throw new ValidationException("Неверный email");
-        }
         patchedUser.setId(id);
         if (patchedUser.getName() == null) {
             patchedUser.setName(oldUser.getName());
@@ -58,5 +52,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(int id) {
         userRepository.deleteById(id);
+    }
+
+    private User validateUser(int userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ObjectNotFoundException("Запрошенный User не найден"));
     }
 }

@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import ru.practicum.shareit.item.dto.ItemDto;
 
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,7 +18,7 @@ import java.util.Collection;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ItemRequestDto {
     int id;
-    @NotNull
+    @NotBlank
     String description;
     LocalDateTime created;
     Collection<ItemDto> items = new ArrayList<>();

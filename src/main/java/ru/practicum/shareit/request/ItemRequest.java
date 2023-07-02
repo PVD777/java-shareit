@@ -1,9 +1,6 @@
 package ru.practicum.shareit.request;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.utility.Generated;
@@ -12,7 +9,8 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Generated
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)

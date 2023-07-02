@@ -1,6 +1,8 @@
 package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.BookingMapper;
 import ru.practicum.shareit.booking.dao.BookingRepository;
@@ -11,15 +13,14 @@ import ru.practicum.shareit.comment.dao.CommentRepository;
 import ru.practicum.shareit.comment.model.Comment;
 import ru.practicum.shareit.comment.model.dto.CommentDto;
 import ru.practicum.shareit.exception.ForbiddenException;
+import ru.practicum.shareit.exception.ObjectNotFoundException;
 import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.request.ItemRequest;
 import ru.practicum.shareit.request.dao.RequestRepository;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dao.UserRepository;
-import ru.practicum.shareit.utility.ExistValidator;
 
-import org.springframework.data.domain.Pageable;
 import javax.validation.ValidationException;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -37,9 +38,9 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto createItem(int userId, ItemDto itemDto) {
         Item item = ItemMapper.dtoToItem(itemDto);
-        item.setOwner(ExistValidator.validateUser(userRepository, userId));
+        item.setOwner(validateUser(userId));
         if (itemDto.getRequestId() != null) {
-            ItemRequest request = ExistValidator.validateRequest(itemRequestRepository, itemDto.getRequestId());
+            ItemRequest request = validateRequest(itemDto.getRequestId());
             item.setRequest(request);
         }
         return ItemMapper.toItemDto(itemRepository.save(item));
@@ -47,7 +48,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto getItem(int itemId, int userId) {
-        Item item = ExistValidator.validateItem(itemRepository, itemId);
+        Item item = validateItem(itemId);
         ItemDto itemDto = ItemMapper.toItemDto(item);
         if (item.getOwner().getId() == userId) {
             setBookingsToItem(itemDto);
@@ -67,7 +68,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto updateItem(int userId, int itemId, ItemDto itemDto) {
-        Item oldItem = ExistValidator.validateItem(itemRepository, itemId);
+        Item oldItem = validateItem(itemId);
         Item updatedItem = ItemMapper.dtoToItem(itemDto);
         if (oldItem.getOwner().getId() != userId) {
             throw new ForbiddenException("Доступ запрещен");
@@ -91,9 +92,16 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDto> getOwnersItem(int userId, Pageable pageable) {
-        return itemRepository.findItemsByOwnerIdOrderById(userId, pageable)
+        List<Item> items = itemRepository.findItemsByOwnerIdOrderById(userId, pageable);
+        List<Integer> itemsId = items.stream().map(Item::getId).collect(Collectors.toList());
+        Map<Integer, List<Comment>> commentsByItemId = getCommentsByItemIds(itemsId);
+        return items
                 .stream()
                 .map(ItemMapper::toItemDto)
+                .peek(itemDto -> itemDto.setComments(commentsByItemId.getOrDefault(itemDto.getId(),
+                                Collections.emptyList()).stream()
+                        .map(CommentMapper::toCommentDto)
+                        .collect(Collectors.toList())))
                 .map(this::setBookingsToItem)
                 .collect(Collectors.toList());
     }
@@ -101,7 +109,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<ItemDto> getAvailableItems(String text, Pageable pageable) {
         if (text.isBlank()) return new ArrayList<>();
-        return itemRepository.findItemsByAvailableIsTrueAndDescriptionContainsIgnoreCase(text,
+        return itemRepository.findItemsByNameOrDescription(text,
                         pageable).stream()
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
@@ -109,13 +117,10 @@ public class ItemServiceImpl implements ItemService {
 
 
     public CommentDto addComment(int userId, int itemId, CommentDto commentDto) {
-        Item item = ExistValidator.validateItem(itemRepository, itemId);
-        User user = ExistValidator.validateUser(userRepository, userId);
-        boolean wasBooked = bookingRepository.findBookingsByItemIdOrderByBookingStart(itemId).stream()
-                .filter(booking -> booking.getBookingFinish().isBefore(LocalDateTime.now()) &&
-                        booking.getStatus().equals(BookingStatus.APPROVED))
+        Item item = validateItem(itemId);
+        User user = validateUser(userId);
+        boolean wasBooked = bookingRepository.findBookingsByItemId(itemId, LocalDateTime.now()).stream()
                 .anyMatch(booking -> booking.getUser().getId() == userId);
-
         if (!wasBooked) {
             throw new ValidationException("Доступ запрещен");
         }
@@ -128,7 +133,8 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private ItemDto setBookingsToItem(ItemDto item) {
-        List<Booking> itemBookings = bookingRepository.findBookingsByItemIdOrderByBookingStart(item.getId());
+        List<Booking> itemBookings = bookingRepository
+                .findBookingsByItemIdOrderByBookingStart(item.getId());
         if (!itemBookings.isEmpty()) {
             Optional<Booking> lastBooking = itemBookings.stream()
                     .filter(booking -> !booking.getStatus().equals(BookingStatus.REJECTED) &&
@@ -144,6 +150,38 @@ public class ItemServiceImpl implements ItemService {
         }
         return item;
     }
+
+    private Map<Integer, List<Comment>> getCommentsByItemIds(List<Integer> itemIds) {
+        Map<Integer, List<Comment>> commentsGroupByItemIds = new HashMap<>();
+        List<Comment> comments = commentRepository
+                .findCommentsByItemIdInOrderById(itemIds, Sort.by(Sort.Direction.ASC, "id"));
+        for (Comment comment : comments) {
+            Integer itemId = comment.getItem().getId();
+            List<Comment> commentsByItemId = commentsGroupByItemIds.get(itemId);
+            if (commentsByItemId == null) {
+                commentsByItemId = new ArrayList<>();
+            }
+            commentsByItemId.add(comment);
+            commentsGroupByItemIds.put(itemId, commentsByItemId);
+        }
+        return commentsGroupByItemIds;
+    }
+
+    private Item validateItem(int itemId) {
+        return itemRepository.findById(itemId)
+                .orElseThrow(() -> new ObjectNotFoundException("Запрошенный item не найден"));
+    }
+
+    private User validateUser(int userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ObjectNotFoundException("Запрошенный User не найден"));
+    }
+
+    private ItemRequest validateRequest(int requestId) {
+        return itemRequestRepository.findById(requestId)
+                .orElseThrow(() -> new ObjectNotFoundException("Запрошенный Request не найден"));
+    }
+
 }
 
 

@@ -7,6 +7,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import ru.practicum.shareit.booking.dao.BookingRepository;
 import ru.practicum.shareit.booking.dto.BookingDtoIn;
 import ru.practicum.shareit.booking.dto.BookingDtoOut;
@@ -23,7 +25,8 @@ import javax.validation.ValidationException;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -203,48 +206,211 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void getBookingsOfUser() {
+    void getBookingsOfUserNotExist() {
         Mockito
                 .when(userRepository.existsById(Mockito.anyInt()))
                 .thenReturn(false);
-
         ObjectNotFoundException exception = assertThrows(ObjectNotFoundException.class,
                 () -> bookingService.getBookingsOfUser(users.get(1).getId(),
-                        "ALL", 0, 99));
+                        "ALL", PageRequest.of(0, 99)));
         assertEquals("Пользователь не существует", exception.getMessage());
+    }
 
-        Mockito
-                .when(bookingRepository.getBookingsByUserId(Mockito.anyInt()))
-                .thenReturn(bookings);
+    @Test
+    void getBookingsOfUserFailStatus() {
         Mockito
                 .when(userRepository.existsById(Mockito.anyInt()))
                 .thenReturn(true);
-
-        Collection<BookingDtoOut> bookingsAllDtoOut = bookingService.getBookingsOfUser(users.get(1).getId(),
-                "ALL", 0, 99);
-        assertEquals(bookingsAllDtoOut.size(), 2);
-        Collection<BookingDtoOut> bookingsFutureDtoOut = bookingService.getBookingsOfUser(users.get(1).getId(),
-                "FUTURE", 0, 99);
-        assertEquals(bookingsFutureDtoOut.size(), 2);
-        assertTrue(bookingsFutureDtoOut.stream().allMatch(b -> b.getStart().isAfter(LocalDateTime.now())));
-
-        Mockito
-                .when(bookingRepository.getBookingsByUserId(Mockito.anyInt()))
-                .thenReturn(Collections.emptyList());
-
-        Collection<BookingDtoOut> bookingsPastDtoOut = bookingService.getBookingsOfUser(users.get(1).getId(),
-                "PAST", 0, 99);
-        assertEquals(bookingsPastDtoOut.size(), 0);
-        Collection<BookingDtoOut> bookingsCurrentDtoOut = bookingService.getBookingsOfUser(users.get(1).getId(),
-                "CURRENT", 0, 99);
-        assertEquals(bookingsCurrentDtoOut.size(), 0);
-        Collection<BookingDtoOut> bookingsWaitingDtoOut = bookingService.getBookingsOfUser(users.get(1).getId(),
-                "WAITING", 0, 99);
-        assertEquals(bookingsPastDtoOut.size(), 0);
-        Collection<BookingDtoOut> bookingsRejectedDtoOut = bookingService.getBookingsOfUser(users.get(1).getId(),
-                "REJECTED", 0, 99);
-        assertEquals(bookingsCurrentDtoOut.size(), 0);
+        UnknownStateException exception = assertThrows(UnknownStateException.class,
+                () -> bookingService.getBookingsOfUser(users.get(1).getId(),
+                        "ASD", PageRequest.of(0, 99)));
+        assertEquals("Unknown state: UNSUPPORTED_STATUS", exception.getMessage());
     }
+
+    @Test
+    void getAllBookingsOfUser() {
+        Mockito
+                .when(userRepository.existsById(Mockito.anyInt()))
+                .thenReturn(true);
+        Mockito
+                .when(bookingRepository.findBookingsByUserId(Mockito.anyInt(), Mockito.any(Pageable.class)))
+                .thenReturn(bookings);
+        Collection<BookingDtoOut> bookingsAllDtoOut = bookingService.getBookingsOfUser(users.get(1).getId(),
+                "ALL", PageRequest.of(0, 99));
+        assertEquals(bookingsAllDtoOut.size(), 2);
+    }
+
+    @Test
+    void getPastBookingsOfUser() {
+        Mockito
+                .when(userRepository.existsById(Mockito.anyInt()))
+                .thenReturn(true);
+        Mockito
+                .when(bookingRepository.findBookingsByUserIdAndBookingFinishBefore(Mockito.anyInt(),
+                        Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class)))
+                .thenReturn(Collections.emptyList());
+        Collection<BookingDtoOut> bookingsAllDtoOut = bookingService.getBookingsOfUser(users.get(1).getId(),
+                "PAST", PageRequest.of(0, 99));
+        assertEquals(bookingsAllDtoOut.size(), 0);
+    }
+
+    @Test
+    void getFutureBookingsOfUser() {
+        Mockito
+                .when(userRepository.existsById(Mockito.anyInt()))
+                .thenReturn(true);
+        Mockito
+                .when(bookingRepository.findBookingsByUserIdAndBookingStartAfter(Mockito.anyInt(),
+                        Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class)))
+                .thenReturn(bookings);
+        Collection<BookingDtoOut> bookingsAllDtoOut = bookingService.getBookingsOfUser(users.get(1).getId(),
+                "FUTURE", PageRequest.of(0, 99));
+        assertEquals(bookingsAllDtoOut.size(), 2);
+    }
+
+    @Test
+    void getCurrentBookingsOfUser() {
+        Mockito
+                .when(userRepository.existsById(Mockito.anyInt()))
+                .thenReturn(true);
+        Mockito
+                .when(bookingRepository.findBookingsByUserIdAndBookingStartBeforeAndBookingFinishAfter(Mockito.anyInt(),
+                        Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class)))
+                .thenReturn(Collections.emptyList());
+        Collection<BookingDtoOut> bookingsAllDtoOut = bookingService.getBookingsOfUser(users.get(1).getId(),
+                "CURRENT", PageRequest.of(0, 99));
+        assertEquals(bookingsAllDtoOut.size(), 0);
+    }
+
+    @Test
+    void getWaitingBookingsOfUser() {
+        Mockito
+                .when(userRepository.existsById(Mockito.anyInt()))
+                .thenReturn(true);
+        Mockito
+                .when(bookingRepository.findBookingsByUserIdAndStatus(Mockito.anyInt(), Mockito.any(BookingStatus.class)))
+                .thenReturn(bookings);
+        Collection<BookingDtoOut> bookingsAllDtoOut = bookingService.getBookingsOfUser(users.get(1).getId(),
+                "WAITING", PageRequest.of(0, 99));
+        assertEquals(bookingsAllDtoOut.size(), 2);
+    }
+
+    @Test
+    void getRejectedBookingsOfUser() {
+        Mockito
+                .when(userRepository.existsById(Mockito.anyInt()))
+                .thenReturn(true);
+        Mockito
+                .when(bookingRepository.findBookingsByUserIdAndStatus(Mockito.anyInt(), Mockito.any(BookingStatus.class)))
+                .thenReturn(Collections.emptyList());
+        Collection<BookingDtoOut> bookingsAllDtoOut = bookingService.getBookingsOfUser(users.get(1).getId(),
+                "REJECTED", PageRequest.of(0, 99));
+        assertEquals(bookingsAllDtoOut.size(), 0);
+    }
+
+    @Test
+    void getBookingsOfOwnerNotExist() {
+        Mockito
+                .when(userRepository.existsById(Mockito.anyInt()))
+                .thenReturn(false);
+        ObjectNotFoundException exception = assertThrows(ObjectNotFoundException.class,
+                () -> bookingService.getBookingsOfOwner(users.get(1).getId(),
+                        "ALL", PageRequest.of(0, 99)));
+        assertEquals("Пользователь не существует", exception.getMessage());
+    }
+
+    @Test
+    void getBookingsOfOwnerFailStatus() {
+        Mockito
+                .when(userRepository.existsById(Mockito.anyInt()))
+                .thenReturn(true);
+        UnknownStateException exception = assertThrows(UnknownStateException.class,
+                () -> bookingService.getBookingsOfOwner(users.get(1).getId(),
+                        "ASD", PageRequest.of(0, 99)));
+        assertEquals("Unknown state: UNSUPPORTED_STATUS", exception.getMessage());
+    }
+
+    @Test
+    void getAllBookingsOfOwner() {
+        Mockito
+                .when(userRepository.existsById(Mockito.anyInt()))
+                .thenReturn(true);
+        Mockito
+                .when(bookingRepository.findBookingsByItemOwnerId(Mockito.anyInt(), Mockito.any(Pageable.class)))
+                .thenReturn(bookings);
+        Collection<BookingDtoOut> bookingsAllDtoOut = bookingService.getBookingsOfOwner(users.get(0).getId(),
+                "ALL", PageRequest.of(0, 99));
+        assertEquals(bookingsAllDtoOut.size(), 2);
+    }
+
+    @Test
+    void getPastBookingsOfOwner() {
+        Mockito
+                .when(userRepository.existsById(Mockito.anyInt()))
+                .thenReturn(true);
+        Mockito
+                .when(bookingRepository.findBookingsByItemOwnerIdAndBookingFinishBefore(Mockito.anyInt(),
+                        Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class)))
+                .thenReturn(Collections.emptyList());
+        Collection<BookingDtoOut> bookingsAllDtoOut = bookingService.getBookingsOfOwner(users.get(1).getId(),
+                "PAST", PageRequest.of(0, 99));
+        assertEquals(bookingsAllDtoOut.size(), 0);
+    }
+
+    @Test
+    void getFutureBookingsOfOwner() {
+        Mockito
+                .when(userRepository.existsById(Mockito.anyInt()))
+                .thenReturn(true);
+        Mockito
+                .when(bookingRepository.findBookingsByItemOwnerIdAndBookingStartAfter(Mockito.anyInt(),
+                        Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class)))
+                .thenReturn(bookings);
+        Collection<BookingDtoOut> bookingsAllDtoOut = bookingService.getBookingsOfOwner(users.get(1).getId(),
+                "FUTURE", PageRequest.of(0, 99));
+        assertEquals(bookingsAllDtoOut.size(), 2);
+    }
+
+    @Test
+    void getCurrentBookingsOfOwner() {
+        Mockito
+                .when(userRepository.existsById(Mockito.anyInt()))
+                .thenReturn(true);
+        Mockito
+                .when(bookingRepository.findBookingsByItemOwnerIdAndBookingStartBeforeAndBookingFinishAfter(Mockito.anyInt(),
+                        Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class)))
+                .thenReturn(Collections.emptyList());
+        Collection<BookingDtoOut> bookingsAllDtoOut = bookingService.getBookingsOfOwner(users.get(1).getId(),
+                "CURRENT", PageRequest.of(0, 99));
+        assertEquals(bookingsAllDtoOut.size(), 0);
+    }
+
+    @Test
+    void getWaitingBookingsOfOwner() {
+        Mockito
+                .when(userRepository.existsById(Mockito.anyInt()))
+                .thenReturn(true);
+        Mockito
+                .when(bookingRepository.findBookingsByItemOwnerIdAndStatus(Mockito.anyInt(), Mockito.any(BookingStatus.class)))
+                .thenReturn(bookings);
+        Collection<BookingDtoOut> bookingsAllDtoOut = bookingService.getBookingsOfOwner(users.get(1).getId(),
+                "WAITING", PageRequest.of(0, 99));
+        assertEquals(bookingsAllDtoOut.size(), 2);
+    }
+
+    @Test
+    void getRejectedBookingsOfOwner() {
+        Mockito
+                .when(userRepository.existsById(Mockito.anyInt()))
+                .thenReturn(true);
+        Mockito
+                .when(bookingRepository.findBookingsByItemOwnerIdAndStatus(Mockito.anyInt(), Mockito.any(BookingStatus.class)))
+                .thenReturn(Collections.emptyList());
+        Collection<BookingDtoOut> bookingsAllDtoOut = bookingService.getBookingsOfOwner(users.get(1).getId(),
+                "REJECTED", PageRequest.of(0, 99));
+        assertEquals(bookingsAllDtoOut.size(), 0);
+    }
+
 
     @Test
     void getBookingsOfOwnerFail() {
@@ -252,14 +418,14 @@ class BookingServiceImplTest {
                 .when(userRepository.existsById(Mockito.anyInt()))
                 .thenReturn(false);
         ObjectNotFoundException exception = assertThrows(ObjectNotFoundException.class,
-                () -> bookingService.getBookingsOfOwner(users.get(0).getId(), "ALL", 0, 99));
+                () -> bookingService.getBookingsOfOwner(users.get(0).getId(), "ALL", PageRequest.of(0, 99)));
         assertEquals("Пользователь не существует", exception.getMessage());
 
         Mockito
                 .when(userRepository.existsById(Mockito.anyInt()))
                 .thenReturn(true);
         UnknownStateException exception2 = assertThrows(UnknownStateException.class,
-                () -> bookingService.getBookingsOfOwner(users.get(0).getId(), "MISTAKE", 0, 99));
+                () -> bookingService.getBookingsOfOwner(users.get(0).getId(), "MISTAKE", PageRequest.of(0, 99)));
         assertEquals("Unknown state: UNSUPPORTED_STATUS", exception2.getMessage());
     }
 
@@ -269,10 +435,10 @@ class BookingServiceImplTest {
                 .when(userRepository.existsById(Mockito.anyInt()))
                 .thenReturn(true);
         Mockito
-                .when(bookingRepository.findBookingsByItemOwnerId(Mockito.anyInt()))
+                .when(bookingRepository.findBookingsByItemOwnerId(Mockito.anyInt(), Mockito.any(Pageable.class)))
                 .thenReturn(bookings);
         Collection<BookingDtoOut> bookingDtoOuts = bookingService
-                .getBookingsOfOwner(users.get(1).getId(), "ALL", 0, 99);
+                .getBookingsOfOwner(users.get(1).getId(), "ALL", PageRequest.of(0, 99));
         assertEquals(bookingDtoOuts.size(), 2);
     }
 

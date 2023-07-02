@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.domain.Pageable;
 import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.request.ItemRequest;
@@ -103,6 +104,19 @@ class RequestRepositoryTest {
         Collection<ItemRequest> requests3 = requestRepository
                 .getItemRequestsByUserIdOrderByCreatedDateTime(users.get(2).getId());
         assertEquals(requests3.size(), 0);
+    }
+
+    @Test
+    void findItemRequestsByUserIdNotOrderByCreatedDateTime() {
+        Collection<ItemRequest> requests1 = requestRepository
+                .findItemRequestsByUserIdNotOrderByCreatedDateTime(users.get(0).getId(), Pageable.ofSize(5));
+        assertEquals(requests1.size(), 2);
+        Collection<ItemRequest> requests2 = requestRepository
+                .findItemRequestsByUserIdNotOrderByCreatedDateTime(users.get(1).getId(), Pageable.ofSize(5));
+        assertEquals(requests2.size(), 1);
+        Collection<ItemRequest> requests3 = requestRepository
+                .findItemRequestsByUserIdNotOrderByCreatedDateTime(users.get(2).getId(), Pageable.ofSize(5));
+        assertEquals(requests3.size(), 3);
     }
 
 }

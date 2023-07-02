@@ -10,14 +10,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.dto.UserDto;
 
-import javax.validation.ValidationException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
@@ -75,19 +75,19 @@ class UserServiceImplTest {
     }
 
     @Test
-    void updateUserFailEmail() {
+    void updateUserWithNoNameNoMail() {
         User user = new User();
         user.setId(1);
-        user.setName("UpdateName");
-        user.setEmail("updateupdate.com");
         UserDto userDto = UserMapper.toUserDto(user);
         Mockito
                 .when(userRepository.findById(Mockito.anyInt()))
                 .thenReturn(Optional.of(users.get(0)));
-
-        ValidationException exception = assertThrows(ValidationException.class,
-                () -> userService.updateUser(users.get(0).getId(), userDto));
-        assertEquals("Неверный email", exception.getMessage());
+        Mockito
+                .when(userRepository.save(Mockito.any(User.class)))
+                .thenReturn(users.get(0));
+        UserDto updatedUser = userService.updateUser(users.get(0).getId(), userDto);
+        assertEquals(users.get(0).getId(), updatedUser.getId());
+        assertEquals(users.get(0).getName(), updatedUser.getName());
     }
 
     @Test

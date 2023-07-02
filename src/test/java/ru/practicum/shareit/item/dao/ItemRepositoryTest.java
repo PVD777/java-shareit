@@ -17,7 +17,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
 class ItemRepositoryTest {
@@ -120,14 +121,14 @@ class ItemRepositoryTest {
     @Test
     @DisplayName("Проверка поиска доступных вещей по описанию")
     void findItemsByAvailableIsTrueAndDescriptionContainsIgnoreCase() {
-        List<Item> searchedItems = itemRepository.findItemsByAvailableIsTrueAndDescriptionContainsIgnoreCase("dESC",
+        List<Item> searchedItems = itemRepository.findItemsByNameOrDescription("dESC",
                 Pageable.ofSize(2));
         assertEquals(searchedItems.size(),2);
         assertTrue(searchedItems.get(0).getDescription().contains("Desc") &&
                 searchedItems.get(1).getDescription().contains("Desc"));
         assertTrue(searchedItems.get(0).getAvailable() & searchedItems.get(1).getAvailable());
 
-        searchedItems = itemRepository.findItemsByAvailableIsTrueAndDescriptionContainsIgnoreCase("DeSc",
+        searchedItems = itemRepository.findItemsByNameOrDescription("DeSc",
                 Pageable.ofSize(22));
         assertEquals(searchedItems.size(),6);
         assertTrue(searchedItems.stream().allMatch(Item::getAvailable));

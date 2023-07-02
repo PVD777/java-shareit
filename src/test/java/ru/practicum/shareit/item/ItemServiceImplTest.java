@@ -9,6 +9,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import ru.practicum.shareit.booking.dao.BookingRepository;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
@@ -211,15 +212,18 @@ class ItemServiceImplTest {
         Mockito
                 .when(bookingRepository.findBookingsByItemIdOrderByBookingStart(Mockito.anyInt()))
                 .thenReturn(bookings);
+        Mockito
+                .when(commentRepository.findCommentsByItemIdInOrderById(Mockito.anyList(), Mockito.any(Sort.class)))
+                .thenReturn(comments);
         User currentUser = users.get(0);
-        List<ItemDto> ownerItems = itemService.getOwnersItem(currentUser.getId(), PageRequest.of(0,5));
+        List<ItemDto> ownerItems = itemService.getOwnersItem(currentUser.getId(), PageRequest.of(0, 5));
         assertEquals(ownerItems.size(), items.size());
     }
 
     @Test
     void getAvailableItems() {
         Mockito
-                .when(itemRepository.findItemsByAvailableIsTrueAndDescriptionContainsIgnoreCase(Mockito.anyString(),
+                .when(itemRepository.findItemsByNameOrDescription(Mockito.anyString(),
                         Mockito.any(Pageable.class)))
                 .thenReturn(items);
         List<ItemDto> searchedItems = itemService.getAvailableItems("test", PageRequest.of(0, 1));
@@ -236,7 +240,7 @@ class ItemServiceImplTest {
                 .when(userRepository.findById(Mockito.anyInt()))
                 .thenReturn(Optional.of(users.get(1)));
         Mockito
-                .when(bookingRepository.findBookingsByItemIdOrderByBookingStart(Mockito.anyInt()))
+                .when(bookingRepository.findBookingsByItemId(Mockito.anyInt(), Mockito.any(LocalDateTime.class)))
                 .thenReturn(bookings);
         Mockito
                 .when(commentRepository.save(Mockito.any(Comment.class)))
@@ -257,7 +261,7 @@ class ItemServiceImplTest {
                 .when(userRepository.findById(Mockito.anyInt()))
                 .thenReturn(Optional.of(users.get(1)));
         Mockito
-                .when(bookingRepository.findBookingsByItemIdOrderByBookingStart(Mockito.anyInt()))
+                .when(bookingRepository.findBookingsByItemId(Mockito.anyInt(), Mockito.any(LocalDateTime.class)))
                 .thenReturn(Collections.emptyList());
 
         ValidationException exception = assertThrows(ValidationException.class,

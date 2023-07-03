@@ -53,4 +53,8 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
     List<Booking> findBookingsByItemId(@Param("itemId") int itemId, @Param("date") LocalDateTime date);
 
 
+    @Query(value = "SELECT booking " +
+            "FROM Booking booking " +
+            "WHERE booking.item.id IN :itemIds AND booking.status = 'APPROVED' ")
+    List<Booking> findBookingsByItemIdIn(@Param("itemIds") List<Integer> itemIds);
 }

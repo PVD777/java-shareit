@@ -2,8 +2,10 @@ package ru.practicum.shareit.booking.dao;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.domain.Pageable;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.item.Item;
@@ -14,6 +16,9 @@ import ru.practicum.shareit.user.dao.UserRepository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
 class BookingRepositoryTest {
@@ -80,28 +85,34 @@ class BookingRepositoryTest {
         itemRepository.deleteAll();
     }
 
-/*    @Test
+    @Test
     void getBookingsByUserId() {
-        List<Booking> bookingOfUsers1 = bookingRepository.getBookingsByUserId(users.get(0).getId(), );
-        assertEquals(bookingOfUsers1.size(),1);
+        List<Booking> bookingOfUsers1 = bookingRepository.findBookingsByUserId(users.get(0).getId(),
+                Pageable.ofSize(99));
+        assertEquals(bookingOfUsers1.size(), 1);
         assertEquals(bookingOfUsers1.get(0), bookings.get(0));
-        List<Booking> bookingOfUsers2 = bookingRepository.getBookingsByUserId(users.get(1).getId(), );
+        List<Booking> bookingOfUsers2 = bookingRepository.findBookingsByUserId(users.get(1).getId(),
+                Pageable.ofSize(99));
         assertTrue(bookingOfUsers2.isEmpty());
-        List<Booking> bookingOfUsers3 = bookingRepository.getBookingsByUserId(users.get(2).getId(), );
-        assertEquals(bookingOfUsers3.size(),2);
+        List<Booking> bookingOfUsers3 = bookingRepository.findBookingsByUserId(users.get(2).getId(),
+                Pageable.ofSize(99));
+        assertEquals(bookingOfUsers3.size(), 2);
         assertEquals(bookingOfUsers3.get(0), bookings.get(1));
-        assertEquals(bookingOfUsers3.get(1),bookings.get(2));
+        assertEquals(bookingOfUsers3.get(1), bookings.get(2));
     }
 
     @Test
     void findBookingsByItemOwnerId() {
-        List<Booking> bookingsOfItemOwner1 = bookingRepository.findBookingsByItemOwnerId(users.get(0).getId());
+        List<Booking> bookingsOfItemOwner1 = bookingRepository.findBookingsByItemOwnerId(users.get(0).getId(),
+                Pageable.ofSize(99));
         assertTrue(bookingsOfItemOwner1.isEmpty());
-        List<Booking> bookingsOfItemOwner2 = bookingRepository.findBookingsByItemOwnerId(users.get(1).getId());
-        assertEquals(bookingsOfItemOwner2.size(),3);
+        List<Booking> bookingsOfItemOwner2 = bookingRepository.findBookingsByItemOwnerId(users.get(1).getId(),
+                Pageable.ofSize(99));
+        assertEquals(bookingsOfItemOwner2.size(), 3);
         assertTrue(bookingsOfItemOwner2.stream()
                 .allMatch(booking -> booking.getItem().getOwner().getId() == users.get(1).getId()));
-        List<Booking> bookingsOfItemOwner3 = bookingRepository.findBookingsByItemOwnerId(users.get(2).getId());
+        List<Booking> bookingsOfItemOwner3 = bookingRepository.findBookingsByItemOwnerId(users.get(2).getId(),
+                Pageable.ofSize(99));
         assertTrue(bookingsOfItemOwner3.isEmpty());
 
     }
@@ -116,5 +127,5 @@ class BookingRepositoryTest {
         assertTrue(bookingsByItemId2.get(0).getBookingStart().isBefore(bookingsByItemId2.get(1).getBookingStart()));
         List<Booking> bookingsByItemId3 = bookingRepository.findBookingsByItemIdOrderByBookingStart(items.get(2).getId());
         assertTrue(bookingsByItemId3.isEmpty());
-    }*/
+    }
 }

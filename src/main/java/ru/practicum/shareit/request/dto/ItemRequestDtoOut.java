@@ -16,7 +16,7 @@ import java.util.Collection;
 @AllArgsConstructor
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ItemRequestDto {
+public class ItemRequestDtoOut {
     int id;
     @NotBlank
     String description;

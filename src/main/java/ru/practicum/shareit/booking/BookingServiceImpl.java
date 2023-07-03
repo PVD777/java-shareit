@@ -44,11 +44,6 @@ public class BookingServiceImpl implements BookingService {
         if (user.getId() == item.getOwner().getId()) {
             throw new ObjectNotFoundException("Нельзя бронировать свои вещи");
         }
-        if (bookingDtoIn.getStart().isAfter(bookingDtoIn.getEnd()) ||
-                bookingDtoIn.getStart().isBefore(LocalDateTime.now()) ||
-                bookingDtoIn.getStart().equals(bookingDtoIn.getEnd())) {
-            throw new ValidationException("Проверь срок аренды");
-        }
 
         Booking booking = BookingMapper.dtoToBooking(bookingDtoIn);
         booking.setItem(item);

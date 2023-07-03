@@ -25,6 +25,7 @@ public class BookingMapper {
     }
 
     public BookingDtoOutShort bookingToDtoOutShort(Booking booking) {
+        if (booking == null) return null;
         BookingDtoOutShort bookingDtoOutShort = new BookingDtoOutShort();
         bookingDtoOutShort.setId(booking.getId());
         bookingDtoOutShort.setStart(booking.getBookingStart());

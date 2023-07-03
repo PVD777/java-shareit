@@ -39,10 +39,10 @@ public class UserServiceImpl implements UserService {
         User oldUser = UserMapper.dtoToUser(getUser(id));
         User patchedUser = UserMapper.dtoToUser(userDto);
         patchedUser.setId(id);
-        if (patchedUser.getName() == null) {
+        if (patchedUser.getName() == null || patchedUser.getName().isBlank()) {
             patchedUser.setName(oldUser.getName());
         }
-        if (patchedUser.getEmail() == null) {
+        if (patchedUser.getEmail() == null || patchedUser.getEmail().isBlank()) {
             patchedUser.setEmail(oldUser.getEmail());
         }
         return UserMapper.toUserDto(userRepository.save(patchedUser));

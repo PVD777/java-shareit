@@ -11,7 +11,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import ru.practicum.shareit.request.dto.ItemRequestDto;
+import ru.practicum.shareit.request.dto.ItemRequestDtoIn;
+import ru.practicum.shareit.request.dto.ItemRequestDtoOut;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.utility.XHeaders;
 
@@ -37,7 +38,7 @@ class ItemRequestControllerTest {
 
     private final List<UserDto> users = new ArrayList<>();
 
-    private final List<ItemRequestDto> requests = new ArrayList<>();
+    private final List<ItemRequestDtoOut> requests = new ArrayList<>();
 
     @BeforeEach
     void beforeEach() {
@@ -53,11 +54,11 @@ class ItemRequestControllerTest {
         user2.setEmail("user2@yandex.ru");
         users.add(user2);
 
-        ItemRequestDto itemRequest1 = new ItemRequestDto();
+        ItemRequestDtoOut itemRequest1 = new ItemRequestDtoOut();
         itemRequest1.setId(1);
         itemRequest1.setDescription("desc1");
         itemRequest1.setCreated(LocalDateTime.now());
-        ItemRequestDto itemRequest2 = new ItemRequestDto();
+        ItemRequestDtoOut itemRequest2 = new ItemRequestDtoOut();
         itemRequest2.setId(2);
         itemRequest2.setDescription("desc2");
         itemRequest2.setCreated(LocalDateTime.now());
@@ -68,9 +69,9 @@ class ItemRequestControllerTest {
 
     @Test
     void createRequest() throws Exception {
-        ItemRequestDto request = requests.get(0);
+        ItemRequestDtoOut request = requests.get(0);
         UserDto user = users.get(0);
-        Mockito.when(itemRequestService.create(Mockito.anyInt(), Mockito.any(ItemRequestDto.class)))
+        Mockito.when(itemRequestService.create(Mockito.anyInt(), Mockito.any(ItemRequestDtoIn.class)))
                 .thenReturn(request);
 
         mockMvc.perform(
@@ -94,7 +95,7 @@ class ItemRequestControllerTest {
 
     @Test
     void getAllRequests() throws Exception {
-        ItemRequestDto request = requests.get(0);
+        ItemRequestDtoOut request = requests.get(0);
         UserDto user = users.get(0);
         Mockito
                 .when(itemRequestService.getOwnerRequests(Mockito.anyInt()))

@@ -8,14 +8,19 @@ import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.item.ItemMapper;
 import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.request.dao.RequestRepository;
-import ru.practicum.shareit.request.dto.ItemRequestDto;
+import ru.practicum.shareit.request.dto.ItemRequestDtoIn;
+import ru.practicum.shareit.request.dto.ItemRequestDtoOut;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dao.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
 
 
 @Service
@@ -27,8 +32,8 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     private final ItemRepository itemRepository;
 
     @Override
-    public ItemRequestDto create(int userId, ItemRequestDto itemRequestDto) {
-        ItemRequest itemRequest = ItemRequestMapper.dtoToItemRequest(itemRequestDto);
+    public ItemRequestDtoOut create(int userId, ItemRequestDtoIn itemRequestDtoIn) {
+        ItemRequest itemRequest = ItemRequestMapper.dtoToItemRequest(itemRequestDtoIn);
         User user = validateUser(userId);
         itemRequest.setUser(user);
         itemRequest.setCreatedDateTime(LocalDateTime.now());
@@ -36,41 +41,29 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     }
 
     @Override
-    public ItemRequestDto get(int requestId, int userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new ObjectNotFoundException("Пользователь не существует");
-        }
-        ItemRequestDto itemRequestDto = ItemRequestMapper.toItemRequestDto(validateRequest(requestId));
-        return setItemsToRequestDto(itemRequestDto);
+    public ItemRequestDtoOut get(int requestId, int userId) {
+        isUserExist(userId);
+        ItemRequestDtoOut itemRequestDtoOut = ItemRequestMapper.toItemRequestDto(validateRequest(requestId));
+        return setItemsToRequestDto(itemRequestDtoOut);
     }
 
     @Override
-    public Collection<ItemRequestDto> getOwnerRequests(int userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new ObjectNotFoundException("Пользователь не существует");
-        }
+    public Collection<ItemRequestDtoOut> getOwnerRequests(int userId) {
+        isUserExist(userId);
         Collection<ItemRequest> requests = itemRequestRepository.getItemRequestsByUserIdOrderByCreatedDateTime(userId);
-        List<Integer> requestIds = requests.stream().map(ItemRequest::getId).collect(Collectors.toList());
-        Map<Integer, List<Item>> itemsByRequestIds = getItemsByRequestIds(requestIds);
-        return requests.stream()
-                .map(ItemRequestMapper::toItemRequestDto)
-                .peek(itemRequestDto ->
-                        itemRequestDto.setItems(itemsByRequestIds
-                                .getOrDefault(itemRequestDto.getId(), Collections.emptyList()).stream()
-                                .map(ItemMapper::toItemDto)
-                                .collect(Collectors.toList())))
-                .collect(Collectors.toList());
-
+        return getItemRequestDtos(requests);
     }
 
     @Override
-    public Collection<ItemRequestDto> getAll(int userId, int from, int size) {
-        if (!userRepository.existsById(userId)) {
-            throw new ObjectNotFoundException("Пользователь не существует");
-        }
+    public Collection<ItemRequestDtoOut> getAll(int userId, int from, int size) {
+        isUserExist(userId);
         Collection<ItemRequest> requests = itemRequestRepository
                 .findItemRequestsByUserIdNotOrderByCreatedDateTime(userId, PageRequest.of(from / size, size));
-        List<Integer> requestIds = requests.stream().map(ItemRequest::getId).collect(Collectors.toList());
+        return getItemRequestDtos(requests);
+    }
+
+    private Collection<ItemRequestDtoOut> getItemRequestDtos(Collection<ItemRequest> requests) {
+        List<Integer> requestIds = requests.stream().map(ItemRequest::getId).collect(toList());
         Map<Integer, List<Item>> itemsByRequestIds = getItemsByRequestIds(requestIds);
         return requests.stream()
                 .map(ItemRequestMapper::toItemRequestDto)
@@ -78,30 +71,21 @@ public class ItemRequestServiceImpl implements ItemRequestService {
                         itemRequestDto.setItems(itemsByRequestIds
                                 .getOrDefault(itemRequestDto.getId(), Collections.emptyList()).stream()
                                 .map(ItemMapper::toItemDto)
-                                .collect(Collectors.toList())))
-                .collect(Collectors.toList());
+                                .collect(toList())))
+                .collect(toList());
     }
 
-    private ItemRequestDto setItemsToRequestDto(ItemRequestDto itemRequestDto) {
-        itemRequestDto.setItems(itemRepository.getItemByRequestId(itemRequestDto.getId()).stream()
+    private ItemRequestDtoOut setItemsToRequestDto(ItemRequestDtoOut itemRequestDtoOut) {
+        itemRequestDtoOut.setItems(itemRepository.getItemByRequestId(itemRequestDtoOut.getId()).stream()
                 .map(ItemMapper::toItemDto)
-                .collect(Collectors.toList()));
-        return itemRequestDto;
+                .collect(toList()));
+        return itemRequestDtoOut;
     }
 
     private Map<Integer, List<Item>> getItemsByRequestIds(List<Integer> requestIds) {
-        Map<Integer, List<Item>> itemsGroupByRequestIds = new HashMap<>();
         List<Item> items = itemRepository.findByRequestIdIn(requestIds);
-        for (Item item : items) {
-            Integer requestId = item.getRequest().getId();
-            List<Item> itemsByRequestId = itemsGroupByRequestIds.get(requestId);
-            if (itemsByRequestId == null) {
-                itemsByRequestId = new ArrayList<>();
-            }
-            itemsByRequestId.add(item);
-            itemsGroupByRequestIds.put(requestId, itemsByRequestId);
-        }
-        return itemsGroupByRequestIds;
+        return items.stream()
+                .collect(groupingBy(i -> i.getRequest().getId(), toList()));
     }
 
     private User validateUser(int userId) {
@@ -112,5 +96,10 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     private ItemRequest validateRequest(int requestId) {
         return itemRequestRepository.findById(requestId)
                 .orElseThrow(() -> new ObjectNotFoundException("Запрошенный Request не найден"));
+    }
+
+    private void isUserExist(int userId) {
+        if (!userRepository.existsById(userId))
+            throw new ObjectNotFoundException("Пользователь не существует");
     }
 }

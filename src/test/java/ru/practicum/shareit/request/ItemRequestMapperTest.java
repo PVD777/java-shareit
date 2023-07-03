@@ -1,11 +1,11 @@
 package ru.practicum.shareit.request;
 
 import org.junit.jupiter.api.Test;
-import ru.practicum.shareit.request.dto.ItemRequestDto;
+import ru.practicum.shareit.request.dto.ItemRequestDtoIn;
+import ru.practicum.shareit.request.dto.ItemRequestDtoOut;
 import ru.practicum.shareit.user.User;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -14,14 +14,14 @@ class ItemRequestMapperTest {
     @Test
     void toItemRequestDto() {
         ItemRequest itemRequest = new ItemRequest(1, "desc", new User(), LocalDateTime.now());
-        ItemRequestDto itemRequestDto = ItemRequestMapper.toItemRequestDto(itemRequest);
-        assertEquals(itemRequestDto.getId(), itemRequest.getId());
+        ItemRequestDtoOut itemRequestDtoOut = ItemRequestMapper.toItemRequestDto(itemRequest);
+        assertEquals(itemRequestDtoOut.getId(), itemRequest.getId());
     }
 
     @Test
     void dtoToItemRequest() {
-        ItemRequestDto itemRequestDto = new ItemRequestDto(1, "asd", LocalDateTime.now(), new ArrayList<>());
-        ItemRequest itemRequest = ItemRequestMapper.dtoToItemRequest(itemRequestDto);
-        assertEquals(itemRequestDto.getDescription(), itemRequest.getDescription());
+        ItemRequestDtoIn itemRequestDtoIn = new ItemRequestDtoIn("asd");
+        ItemRequest itemRequest = ItemRequestMapper.dtoToItemRequest(itemRequestDtoIn);
+        assertEquals(itemRequestDtoIn.getDescription(), itemRequest.getDescription());
     }
 }

@@ -11,7 +11,8 @@ import org.springframework.data.domain.Pageable;
 import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.request.dao.RequestRepository;
-import ru.practicum.shareit.request.dto.ItemRequestDto;
+import ru.practicum.shareit.request.dto.ItemRequestDtoIn;
+import ru.practicum.shareit.request.dto.ItemRequestDtoOut;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dao.UserRepository;
 
@@ -105,9 +106,9 @@ class ItemRequestServiceImplTest {
                 .when(requestRepository.save(Mockito.any(ItemRequest.class)))
                 .thenReturn(requests.get(0));
 
-        ItemRequestDto itemRequestDto = ItemRequestMapper.toItemRequestDto(requests.get(0));
+        ItemRequestDtoIn itemRequestDtoIn = ItemRequestMapper.toItemRequestDtoIn(requests.get(0));
         int ownerId = users.get(0).getId();
-        ItemRequestDto savedRequest = itemRequestService.create(ownerId, itemRequestDto);
+        ItemRequestDtoOut savedRequest = itemRequestService.create(ownerId, itemRequestDtoIn);
         assertEquals(requests.get(0).getId(), savedRequest.getId());
         assertEquals(requests.get(0).getDescription(), savedRequest.getDescription());
     }
@@ -121,8 +122,8 @@ class ItemRequestServiceImplTest {
                 .when(requestRepository.findById(Mockito.anyInt()))
                 .thenReturn(Optional.of(requests.get(0)));
         int userId = users.get(0).getId();
-        ItemRequestDto itemRequestDto = itemRequestService.get(requests.get(0).getId(), userId);
-        assertEquals(itemRequestDto.getId(), requests.get(0).getId());
+        ItemRequestDtoOut itemRequestDtoOut = itemRequestService.get(requests.get(0).getId(), userId);
+        assertEquals(itemRequestDtoOut.getId(), requests.get(0).getId());
     }
 
     @Test
@@ -134,7 +135,7 @@ class ItemRequestServiceImplTest {
                 .when(requestRepository.getItemRequestsByUserIdOrderByCreatedDateTime(Mockito.anyInt()))
                 .thenReturn(requests);
         int ownerId = users.get(0).getId();
-        Collection<ItemRequestDto> requestDtos = itemRequestService.getOwnerRequests(ownerId);
+        Collection<ItemRequestDtoOut> requestDtos = itemRequestService.getOwnerRequests(ownerId);
         assertEquals(requestDtos.size(), 2);
     }
 
@@ -151,7 +152,7 @@ class ItemRequestServiceImplTest {
         Mockito
                 .when(itemRepository.findByRequestIdIn(Mockito.anyList()))
                 .thenReturn(items);
-        Collection<ItemRequestDto> allRequests = itemRequestService.getAll(2, 0, 99);
+        Collection<ItemRequestDtoOut> allRequests = itemRequestService.getAll(2, 0, 99);
         assertEquals(allRequests.size(), 2);
     }
 }

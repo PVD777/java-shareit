@@ -1,9 +1,6 @@
 package ru.practicum.shareit.booking.model;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.user.User;
@@ -12,7 +9,8 @@ import ru.practicum.shareit.utility.Generated;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
 @Generated
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)

@@ -160,10 +160,10 @@ class ItemServiceImplTest {
                 .when(commentRepository.findCommentsByItemIdOrderByCreate(Mockito.anyInt()))
                 .thenReturn(comments);
         Mockito
-                .when(bookingRepository.findBookingsByItemIdOrderByBookingStart(Mockito.anyInt()))
+                .when(bookingRepository.findBookingsByItemIdIn(Mockito.anyList()))
                 .thenReturn(bookings);
 
-        ItemDto itemDto = itemService.getItem(Mockito.anyInt(), users.get(0).getId());
+        ItemDto itemDto = itemService.getItem(items.get(0).getId(), users.get(0).getId());
 
         ItemDto expectedIteDto = ItemMapper.toItemDto(items.get(0));
         assertNotNull(itemDto);
@@ -210,7 +210,7 @@ class ItemServiceImplTest {
                 .when(itemRepository.findItemsByOwnerIdOrderById(Mockito.anyInt(), Mockito.any(Pageable.class)))
                 .thenReturn(items);
         Mockito
-                .when(bookingRepository.findBookingsByItemIdOrderByBookingStart(Mockito.anyInt()))
+                .when(bookingRepository.findBookingsByItemIdIn(Mockito.anyList()))
                 .thenReturn(bookings);
         Mockito
                 .when(commentRepository.findCommentsByItemIdInOrderById(Mockito.anyList(), Mockito.any(Sort.class)))

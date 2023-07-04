@@ -1,13 +1,15 @@
 package ru.practicum.shareit.user;
 
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
+import ru.practicum.shareit.utility.Generated;
 
 import javax.persistence.*;
 
-@Data
+@Generated
+@Getter
+@Setter
+@AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @NoArgsConstructor
 @Entity

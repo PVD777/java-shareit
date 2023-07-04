@@ -28,6 +28,7 @@ public class ItemDto {
     BookingDtoOutShort lastBooking;
     BookingDtoOutShort nextBooking;
     List<CommentDto> comments = new ArrayList<>();
+    Integer requestId;
 
     public ItemDto(int id, String name, String description, Boolean available) {
         this.id = id;

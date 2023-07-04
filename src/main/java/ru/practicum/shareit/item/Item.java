@@ -7,8 +7,9 @@ import ru.practicum.shareit.user.User;
 
 import javax.persistence.*;
 
-
-@Data
+@Generated
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -25,11 +26,18 @@ public class Item {
     @ManyToOne
     @JoinColumn(name = "user_id")
     User owner;
-    @Transient
+    @ManyToOne
+    @JoinColumn(name = "request_id")
     ItemRequest request;
 
     public Item(int id, String name, String description, Boolean available) {
         this.id = id;
+        this.name = name;
+        this.description = description;
+        this.available = available;
+    }
+
+    public Item(String name, String description, Boolean available) {
         this.name = name;
         this.description = description;
         this.available = available;

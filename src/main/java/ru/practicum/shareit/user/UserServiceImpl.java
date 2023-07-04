@@ -3,12 +3,10 @@ package ru.practicum.shareit.user;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
 import ru.practicum.shareit.exception.ObjectNotFoundException;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.dto.UserDto;
 
-import javax.validation.ValidationException;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -26,8 +24,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto getUser(int userId) {
-        return UserMapper.toUserDto(userRepository.findById(userId)
-                .orElseThrow(() -> new ObjectNotFoundException("Запрошенный пользователь не найден")));
+        return UserMapper.toUserDto(validateUser(userId));
     }
 
     @Override
@@ -41,15 +38,11 @@ public class UserServiceImpl implements UserService {
     public UserDto updateUser(int id, UserDto userDto) {
         User oldUser = UserMapper.dtoToUser(getUser(id));
         User patchedUser = UserMapper.dtoToUser(userDto);
-        if (patchedUser.getEmail() != null
-                && !patchedUser.getEmail().matches("^[a-zA-Z0-9_!#$%&'*+/=?``{|}~^.-]+@[a-zA-Z0-9.-]+$")) {
-            throw new ValidationException("Неверный email");
-        }
         patchedUser.setId(id);
-        if (patchedUser.getName() == null) {
+        if (patchedUser.getName() == null || patchedUser.getName().isBlank()) {
             patchedUser.setName(oldUser.getName());
         }
-        if (patchedUser.getEmail() == null) {
+        if (patchedUser.getEmail() == null || patchedUser.getEmail().isBlank()) {
             patchedUser.setEmail(oldUser.getEmail());
         }
         return UserMapper.toUserDto(userRepository.save(patchedUser));
@@ -59,5 +52,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(int id) {
         userRepository.deleteById(id);
+    }
+
+    private User validateUser(int userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ObjectNotFoundException("Запрошенный User не найден"));
     }
 }

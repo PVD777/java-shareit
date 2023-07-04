@@ -4,7 +4,9 @@ import ru.practicum.shareit.item.dto.ItemDto;
 public class ItemMapper {
 
     public static ItemDto toItemDto(Item item) {
-        return new ItemDto(item.getId(), item.getName(), item.getDescription(), item.getAvailable());
+        ItemDto itemDto =  new ItemDto(item.getId(), item.getName(), item.getDescription(), item.getAvailable());
+        itemDto.setRequestId(item.getRequest() != null ? item.getRequest().getId() : null);
+        return itemDto;
     }
 
     public static Item dtoToItem(ItemDto itemDto) {

@@ -21,5 +21,5 @@ public class ItemDto {
     String description;
     @NotNull
     Boolean available;
-    int requestId;
+    Integer requestId;
 }

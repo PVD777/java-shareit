@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.experimental.FieldDefaults;
 import ru.practicum.shareit.utility.StartBeforeEndDateValid;
 
-import javax.validation.constraints.Future;
 import javax.validation.constraints.FutureOrPresent;
 import java.time.LocalDateTime;
 
@@ -15,6 +14,5 @@ import java.time.LocalDateTime;
 public class BookingDto {
     @FutureOrPresent
     LocalDateTime start;
-    @Future
     LocalDateTime end;
 }

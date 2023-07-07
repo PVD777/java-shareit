@@ -8,6 +8,7 @@ import ru.practicum.shareit.comment.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 
 import javax.validation.Valid;
+import java.util.Collections;
 
 
 @RestController
@@ -50,6 +51,9 @@ public class ItemController {
                                                     @RequestHeader(X_SHARER_USER_ID_HEADER) int userId,
                                                     @RequestParam(defaultValue = "0") int from,
                                                     @RequestParam(defaultValue = "999") int size) {
+        if (text.isBlank()) {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
         return itemClient.getAvailableItems(userId, text, from, size);
     }
 

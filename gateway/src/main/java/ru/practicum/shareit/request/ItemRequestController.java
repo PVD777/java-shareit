@@ -20,9 +20,9 @@ public class ItemRequestController {
     private final ItemRequestClient itemRequestClient;
 
     @PostMapping
-    public ResponseEntity<Object> createRequest(@Valid @RequestBody ItemRequestDto requestDto,
+    public ResponseEntity<Object> createRequest(@RequestBody @Valid ItemRequestDto itemRequestDto,
                                                 @RequestHeader(name = X_SHARER_USER_ID_HEADER) int userId) {
-        return itemRequestClient.createRequest(requestDto, userId);
+        return itemRequestClient.createRequest(itemRequestDto, userId);
     }
 
     @GetMapping("{requestId}")

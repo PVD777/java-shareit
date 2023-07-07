@@ -12,18 +12,18 @@ import ru.practicum.shareit.utility.Update;
 @Controller
 @RequestMapping("/users")
 @RequiredArgsConstructor
-@Validated
 public class UserController {
 
     private final UserClient userClient;
 
     @PostMapping
-    public ResponseEntity<Object> createUser(@Validated(value = Create.class) UserDto userDto) {
+    public ResponseEntity<Object> createUser(@Validated(value = Create.class) @RequestBody UserDto userDto) {
         return userClient.createUser(userDto);
     }
 
     @PatchMapping("{userId}")
-    public ResponseEntity<Object> update(@PathVariable int userId, @Validated(value = Update.class) UserDto userDto) {
+    public ResponseEntity<Object> update(@PathVariable int userId,
+                                         @Validated(value = Update.class) @RequestBody UserDto userDto) {
         return userClient.updateUser(userId, userDto);
     }
 

@@ -8,7 +8,6 @@ import ru.practicum.shareit.comment.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 
 
 @RestController
@@ -21,26 +20,26 @@ public class ItemController {
     private final ItemClient itemClient;
 
     @PostMapping
-    public ResponseEntity<Object> createItem(@NotBlank @RequestHeader(X_SHARER_USER_ID_HEADER) int userId,
+    public ResponseEntity<Object> createItem(@RequestHeader(X_SHARER_USER_ID_HEADER) int userId,
                                              @Valid @RequestBody ItemDto itemDto) {
         return itemClient.createItem(userId, itemDto);
     }
 
     @PatchMapping("{itemId}")
-    public ResponseEntity<Object> updateItem(@NotBlank @RequestHeader(X_SHARER_USER_ID_HEADER) int userId,
-                                             @NotBlank @PathVariable int itemId,
+    public ResponseEntity<Object> updateItem(@RequestHeader(X_SHARER_USER_ID_HEADER) int userId,
+                                             @PathVariable int itemId,
                                              @RequestBody ItemDto itemDto) {
         return itemClient.updateItem(userId, itemId, itemDto);
     }
 
     @GetMapping("{itemId}")
-    public ResponseEntity<Object> getItemById(@NotBlank @RequestHeader(X_SHARER_USER_ID_HEADER) int userId,
+    public ResponseEntity<Object> getItemById(@RequestHeader(X_SHARER_USER_ID_HEADER) int userId,
                                               @PathVariable int itemId) {
         return itemClient.getItem(userId, itemId);
     }
 
     @GetMapping
-    public ResponseEntity<Object> getOwnersItem(@NotBlank @RequestHeader(X_SHARER_USER_ID_HEADER) long userId,
+    public ResponseEntity<Object> getOwnersItem(@RequestHeader(X_SHARER_USER_ID_HEADER) long userId,
                                                 @RequestParam(defaultValue = "0") int from,
                                                 @RequestParam(defaultValue = "999") int size) {
         return itemClient.getOwnerItem(userId, from, size);

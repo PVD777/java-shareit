@@ -6,7 +6,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingDto;
-import ru.practicum.shareit.booking.dto.BookingSearchStatus;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
@@ -43,7 +42,7 @@ public class BookingController {
 
     @GetMapping
     public ResponseEntity<Object> getAllByUser(@RequestHeader(name = X_SHARER_USER_ID_HEADER) Long userId,
-                                               @RequestParam(defaultValue = "ALL") BookingSearchStatus state,
+                                               @RequestParam(defaultValue = "ALL") String state,
                                                @RequestParam(name = "from", defaultValue = "0") @PositiveOrZero Integer from,
                                                @RequestParam(name = "size", defaultValue = "99") @Positive Integer size) {
         return bookingClient.getByBookerId(userId, state, from, size);
@@ -51,7 +50,7 @@ public class BookingController {
 
     @GetMapping("/owner")
     public ResponseEntity<Object> getAllByOwner(@RequestHeader(name = X_SHARER_USER_ID_HEADER) long userId,
-                                                @RequestParam(defaultValue = "ALL") BookingSearchStatus state,
+                                                @RequestParam(defaultValue = "ALL") String state,
                                                 @RequestParam(name = "from", defaultValue = "0") @PositiveOrZero Integer from,
                                                 @RequestParam(name = "size", defaultValue = "99") @Positive Integer size) {
         return bookingClient.getByOwnerId(userId, state, from, size);

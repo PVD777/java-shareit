@@ -1,9 +1,12 @@
 package ru.practicum.shareit.request;
 
+import lombok.Data;
+
 import javax.validation.constraints.NotBlank;
 
+@Data
 public class ItemRequestDto {
-    @NotBlank
+    @NotBlank(message = "заполните описание")
     private String description;
 
 }

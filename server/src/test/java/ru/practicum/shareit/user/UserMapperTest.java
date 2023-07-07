@@ -1,9 +1,8 @@
 package ru.practicum.shareit.user;
 
 import org.junit.jupiter.api.Test;
-import ru.practicum.shareit.user.dto.UserDto;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class UserMapperTest {
 

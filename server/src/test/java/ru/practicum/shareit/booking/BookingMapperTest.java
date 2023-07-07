@@ -1,13 +1,15 @@
 package ru.practicum.shareit.booking;
 
 import org.junit.jupiter.api.Test;
-import ru.practicum.shareit.booking.dto.BookingDtoOutShort;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
+import ru.practicum.shareit.booking.model.dto.BookingDtoOutShort;
 import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.user.User;
 
 import java.time.LocalDateTime;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class BookingMapperTest {
 

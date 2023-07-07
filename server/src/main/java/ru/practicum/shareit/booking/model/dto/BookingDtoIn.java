@@ -9,12 +9,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 
 public class BookingDtoIn {
-    //@NotNull
     int itemId;
-    //@NotNull
-    //@FutureOrPresent
     LocalDateTime start;
-    //@NotNull
-    //@Future
     LocalDateTime end;
 }

@@ -9,16 +9,16 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import ru.practicum.shareit.booking.dto.BookingDtoIn;
-import ru.practicum.shareit.booking.dto.BookingDtoOut;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
+import ru.practicum.shareit.booking.model.dto.BookingDtoIn;
+import ru.practicum.shareit.booking.model.dto.BookingDtoOut;
 import ru.practicum.shareit.exception.ObjectNotFoundException;
 import ru.practicum.shareit.exception.UnknownStateException;
 import ru.practicum.shareit.item.Item;
-import ru.practicum.shareit.item.dao.ItemRepository;
+import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.user.User;
-import ru.practicum.shareit.user.dao.UserRepository;
+import ru.practicum.shareit.user.UserRepository;
 
 import javax.validation.ValidationException;
 import java.time.LocalDateTime;
@@ -132,25 +132,6 @@ class BookingServiceImplTest {
         ObjectNotFoundException exception2 = assertThrows(ObjectNotFoundException.class,
                 () -> bookingService.createBooking(users.get(0).getId(), bookingDtoIn));
         assertEquals("Нельзя бронировать свои вещи", exception2.getMessage());
-
-
-        /*Mockito
-                .when(userRepository.findById(Mockito.anyInt()))
-                .thenReturn(Optional.of(users.get(1)));
-        bookingDtoIn.setStart(bookingDtoIn.getEnd());
-        ValidationException exception3 = assertThrows(ValidationException.class,
-                () -> bookingService.createBooking(users.get(1).getId(), bookingDtoIn));
-        assertEquals("Проверь срок аренды", exception3.getMessage());
-
-        bookingDtoIn.setStart(bookingDtoIn.getEnd().plusHours(1));
-        exception3 = assertThrows(ValidationException.class,
-                () -> bookingService.createBooking(users.get(1).getId(), bookingDtoIn));
-        assertEquals("Проверь срок аренды", exception3.getMessage());
-
-        bookingDtoIn.setStart(LocalDateTime.now().minusHours(1));
-        exception3 = assertThrows(ValidationException.class,
-                () -> bookingService.createBooking(users.get(1).getId(), bookingDtoIn));
-        assertEquals("Проверь срок аренды", exception3.getMessage());*/
     }
 
     @Test

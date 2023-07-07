@@ -11,9 +11,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import ru.practicum.shareit.comment.model.dto.CommentDto;
+import ru.practicum.shareit.comment.CommentDto;
 import ru.practicum.shareit.exception.ObjectNotFoundException;
-import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.UserDto;
 import ru.practicum.shareit.utility.XHeaders;
 
 import java.time.LocalDateTime;

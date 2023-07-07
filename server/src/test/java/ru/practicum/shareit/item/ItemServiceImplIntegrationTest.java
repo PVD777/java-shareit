@@ -55,7 +55,6 @@ class ItemServiceImplIntegrationTest {
     public void updateWithNoAccess() {
         UserDto user = users.get(0);
         userService.createUser(user);
-
         ItemDto expectedItem = new ItemDto();
         expectedItem.setId(items.get(0).getId());
         expectedItem.setName(items.get(0).getName());
